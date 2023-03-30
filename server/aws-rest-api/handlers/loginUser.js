@@ -2,6 +2,7 @@
 
 const { DynamoDB } = require('@aws-sdk/client-dynamodb');
 const bcrypt = require('bcryptjs');
+const { signToken } = require('../utils/signToken');
 const db = new DynamoDB();
 
 const TABLE_NAME = process.env.USERS_TABLE; // "Users" irne.
@@ -22,15 +23,22 @@ module.exports.loginUser = async (event) => {
 
     // check if data has arrived, then get the password
     if (result.Items.length > 0) {
+      const userId = result.Items[0].userId.S;
       const hash = result.Items[0].password.S;
       const isPassword = bcrypt.compareSync(password, hash);
+      const token = signToken(userId);
 
       // if password matches, then OK
       if (isPassword) {
         return {
           statusCode: 200, // OK
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': '*',
+          },
           body: JSON.stringify({
             loggedIn: true,
+            token,
             message: 'User has logged successfully.',
           }),
         };
@@ -40,6 +48,10 @@ module.exports.loginUser = async (event) => {
           statusCode: 401, // Unauthorized
           body: JSON.stringify({
             loggedIn: false,
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Headers': '*',
+            },
             message: 'Login, failed. Password does not match!!',
           }),
         };

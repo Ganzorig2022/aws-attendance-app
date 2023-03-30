@@ -22,11 +22,11 @@ const Auth = () => {
         <title>Login</title>
         <link rel='icon' href='/favicon.ico' />
       </Head>
-      <main>
+      <div>
         {/* Login, SignUp page */}
         {loginOpen.view === 'login' && <Login toggleView={toggleView} />}
         {loginOpen.view === 'signup' && <Signup toggleView={toggleView} />}
-      </main>
+      </div>
     </div>
   );
 };

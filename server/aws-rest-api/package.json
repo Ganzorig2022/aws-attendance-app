@@ -2,6 +2,10 @@
   "name": "aws-rest-api",
   "version": "1.0.0",
   "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node check.js"
+  },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.299.0",
     "@aws-sdk/util-dynamodb": "^3.299.0",

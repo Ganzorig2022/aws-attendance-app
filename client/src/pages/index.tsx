@@ -1,10 +1,11 @@
+import Logout from '@/components/auth/Logout';
 import { useAuth } from '@/hooks/useAuth';
 import Head from 'next/head';
 
 export default function Home() {
-  const { loading } = useAuth();
+  const { persist } = useAuth();
 
-  if (loading) return null;
+  if (!persist) return null;
 
   return (
     <>
@@ -14,11 +15,12 @@ export default function Home() {
         <meta name='viewport' content='width=device-width, initial-scale=1' />
         <link rel='icon' href='/favicon.ico' />
       </Head>
-      <main className='flex flex-col items-center justify-center'>
+      <div className='flex flex-col items-center justify-center'>
         <h1 className='text-3xl font-bold underline text-red-500'>
           Hello world!
         </h1>
-      </main>
+        <Logout />
+      </div>
     </>
   );
 }

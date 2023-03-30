@@ -1,3 +1,4 @@
+import { useAuth } from '@/hooks/useAuth';
 import { LoginView } from '@/recoil/loginAtom';
 import axios from 'axios';
 import Head from 'next/head';
@@ -15,6 +16,8 @@ type Props = {
 };
 
 const Login = ({ toggleView }: Props) => {
+  const { signIn, loggedIn, loading } = useAuth();
+
   //react hook form
   const {
     register,
@@ -25,15 +28,10 @@ const Login = ({ toggleView }: Props) => {
 
   const onSubmit: SubmitHandler<Inputs> = async (inputs) => {
     const { email, password } = inputs;
-    console.log(email, password);
 
-    // AWS API gateway URL needs here....
-    // await axios.post('/api/posts', { email, password });
+    await signIn(email, password);
 
-    // axios.get(`/api/posts?author=${profileInfo._id}`).then((res) => {
-    //   setPosts(res.data.posts);
-    //   setPostsLikedByMe(res.data.idsLikedByMe);
-    // });
+    console.log('USER SIGN IN STATUS=====>', loggedIn);
   };
 
   return (
@@ -88,16 +86,16 @@ const Login = ({ toggleView }: Props) => {
           </label>
         </div>
         <button
-          className='w-full rounded bg-[#E50914] py-3 font-semibold'
-          //   onClick={() => setLogin(true)}
-          type='submit'
+          className={`w-full rounded bg-[#E50914] py-3 font-semibold text-white btn hover:bg-red-700 ${
+            loading && 'loading'
+          }`}
         >
-          Sign In
+          Login
         </button>
         <div className='flex flex-row items-center justify-center mt-5'>
           <p className='text-[gray]'>New here?</p>
           <button
-            className='cursor-pointer text-[#203E76] font-semibold hover:underline ml-1'
+            className='cursor-pointer font-semibold hover:underline ml-1 text-red-400'
             onClick={() => toggleView('signup')}
             type='submit'
           >

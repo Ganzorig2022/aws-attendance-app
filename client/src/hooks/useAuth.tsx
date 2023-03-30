@@ -8,7 +8,7 @@ import React, {
   useState,
 } from 'react';
 import axios from 'axios';
-import { deleteCookie, getCookie, setCookie } from 'cookies-next';
+import { deleteCookie, getCookie, setCookie, hasCookie } from 'cookies-next';
 
 //Creating Auth Context
 interface AuthType {
@@ -16,8 +16,9 @@ interface AuthType {
   signUp: (email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  error: string | null;
   loading: boolean;
+  loggedIn: boolean;
+  persist: boolean;
 }
 
 const AuthContext = createContext<AuthType>({
@@ -25,8 +26,9 @@ const AuthContext = createContext<AuthType>({
   signUp: async () => {},
   signIn: async () => {},
   logout: async () => {},
-  error: null,
   loading: false,
+  loggedIn: false,
+  persist: false,
 });
 
 interface AuthProviderProps {
@@ -36,89 +38,88 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [user, setUser] = useState<User | null>(null); //User type from firebase;
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [persist, setPersist] = useState(hasCookie('token'));
 
-  //Checking the user
-  // useEffect(
-  //   () =>
-  //     onAuthStateChanged(auth, (user) => {
-  //       if (user) {
-  //         // Logged in...
-
-  //         setUser(user);
-
-  //         setLoading(false);
-  //       } else {
-  //         // Not logged in...
-  //         setUser(null);
-  //         setLoading(true);
-  //         router.push('/auth');
-  //       }
-
-  //       setInitialLoading(false);
-  //     }),
-  //   [auth]
-  // );
+  //Check the user's TOKEN
+  useEffect(() => {
+    if (!persist) {
+      setLoggedIn(false);
+      router.push('/auth');
+      console.log('<<<<<< USER LOGGED OUT>>>>>>');
+    }
+    if (persist) {
+      setLoggedIn(true);
+      console.log('<<<<<<USER STILL SIGNED IN>>>>>>');
+    }
+  }, [persist]);
 
   // 1) Create user
   const signUp = async (email: string, password: string) => {
-    setLoading(true);
-
-    console.log(email);
     // AWS API gateway URL needs here....
-    // await axios.post('/api/posts', { email, password });
+    const endpoint =
+      'https://6ofxmxo37f.execute-api.us-east-1.amazonaws.com/dev/user/signup';
 
-    // await createUserWithEmailAndPassword(auth, email, password)
-    //   .then((userCredential) => {
-    //     setUser(userCredential.user);
-    //     // then go to home page
-    //     router.push('/');
-    //     setLoading(false);
-    //   })
-    //   .catch((error) => {
-    //     alert(error.message);
-    //   })
-    //   .finally(() => setLoading(false));
+    //POST - https://6ofxmxo37f.execute-api.us-east-1.amazonaws.com/dev/user/signup
+    //POST - https://6ofxmxo37f.execute-api.us-east-1.amazonaws.com/dev/user/login
+
+    try {
+      setLoading(true);
+
+      const response = await axios.post(endpoint, { email, password });
+
+      if (response.data?.loggedIn) {
+        setLoading(false);
+        setLoggedIn(true);
+        setCookie('token', response.data?.token);
+        router.push('/');
+      }
+    } catch (error: any) {
+      console.log(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 2) Sign In user
   const signIn = async (email: string, password: string) => {
-    // await signInWithEmailAndPassword(auth, email, password)
-    //   .then((userCredential) => {
-    //     setUser(userCredential.user);
-    //     // then go to home page
-    //     router.push('/');
-    //     setLoading(false);
-    //   })
-    //   .catch((error) => {
-    //     alert(error.message);
-    //   })
-    //   .finally(() => setLoading(false));
+    // AWS API gateway URL needs here....
+    const endpoint =
+      'https://6ofxmxo37f.execute-api.us-east-1.amazonaws.com/dev/user/login';
+
+    try {
+      setLoading(true);
+
+      const response = await axios.post(endpoint, { email, password });
+
+      if (response.data?.loggedIn) {
+        setLoading(false);
+        setLoggedIn(true);
+        setPersist(true);
+        setCookie('token', response.data?.token);
+        router.push('/');
+      }
+    } catch (error: any) {
+      console.log(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
   // 3) Log out user
   const logout = async () => {
-    // setLoading(true);
-    // signOut(auth)
-    //   .then(() => {
-    //     setUser(null);
-    //   })
-    //   .catch((error) => alert(error.message))
-    //   .finally(() => setLoading(false));
+    deleteCookie('token');
+    setLoggedIn(false);
+    router.push('/auth');
   };
 
   const memoedValue = useMemo(
-    () => ({ user, signUp, signIn, error, loading, logout }),
-    [user, loading, error]
+    () => ({ user, signUp, signIn, loading, logout, loggedIn, persist }),
+    [user, loading]
   );
 
   return (
-    <AuthContext.Provider value={memoedValue}>
-      {/* if initialLoading is NULL then... */}
-      {/* {!initialLoading && children} */}
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={memoedValue}>{children}</AuthContext.Provider>
   );
 };
 
