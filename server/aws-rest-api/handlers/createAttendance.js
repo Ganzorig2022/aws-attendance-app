@@ -3,37 +3,25 @@ require('dotenv').config();
 
 const { DynamoDB } = require('@aws-sdk/client-dynamodb');
 const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
-const bcrypt = require('bcryptjs');
+const { calculateTime } = require('../utils/calculateTime');
 const db = new DynamoDB();
 
 const TABLE_NAME = process.env.ATTENDANCE_TABLE;
 
 module.exports.createAttendance = async (event, context) => {
   let { userId } = JSON.parse(event.body);
+  const { subtractedTime, arriveDescription } = await calculateTime();
 
-  let arriveDescription;
-
-  const lessonStarts = new Date(); //Fri Mar 31 2023 11:17:09 GMT+0800 (Ulaanbaatar Standard Time)
-
-  lessonStarts.setHours(9, 0, 0); //1680224400375
-  const currentTime = Date.now();
-  const subtractedTime = (currentTime - lessonStarts.getTime()) / 60000; //130 min etc.
-
-  if (subtractedTime > 0 && subtractedTime < 30) {
-    arriveDescription = `Та ${subtractedTime} мин хоцорсон байна. Ерөнхийдээ гайгүй байна.`;
-  }
-  if (subtractedTime < 0) {
-    arriveDescription = 'Цагтаа багтаж ирсэн байна.';
-  }
-  if (subtractedTime > 120) {
-    arriveDescription = `За арай арай. Бүхэл бүтэн ${subtractedTime} мин хоцорсон байна штээ.`;
-  }
+  console.log('subtractedTime>>>>>>>>', subtractedTime);
+  console.log('arriveDescription>>>>>>>>', arriveDescription);
 
   try {
     const params = {
       userId: userId,
-      createdAt: Date.now(),
-      description: arriveDescription,
+      createdAt: Date.now(), // 1680263701461
+      arrivedAt: new Date(Date.now()).toGMTString(), // 'Fri, 31 Mar 2023 05:40:13 GMT'
+      lateMinute: subtractedTime.toFixed(1), // 130.2 etc.
+      description: arriveDescription, // Цагтаа ирсэн...
     };
 
     await db.putItem({

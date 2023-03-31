@@ -48,14 +48,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     const token = Cookies.get('token');
+
     if (token) {
-      setLoggedIn(true);
       setPersist(true);
       console.log('<<<<<<USER STILL SIGNED IN>>>>>>');
     }
     if (!token) {
       setPersist(false);
-      setLoggedIn(false);
       router.push('/auth');
       console.log('<<<<<< USER LOGGED OUT>>>>>>');
     }
@@ -65,7 +64,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signUp = async (email: string, password: string) => {
     // AWS API gateway URL needs here....
     const endpoint =
-      'https://qfk9ecqt7i.execute-api.us-east-1.amazonaws.com/dev/user/signup';
+      'https://fy193h0b8b.execute-api.us-east-1.amazonaws.com/dev/user/signup';
 
     try {
       setLoading(true);
@@ -77,6 +76,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setLoggedIn(true);
         setUserId(response.data?.userId);
         Cookies.set('token', response.data?.token);
+        Cookies.set('userId', response.data?.userId);
         router.push('/');
       }
     } catch (error: any) {
@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signIn = async (email: string, password: string) => {
     // AWS API gateway URL needs here....
     const endpoint =
-      'https://qfk9ecqt7i.execute-api.us-east-1.amazonaws.com/dev/user/login';
+      'https://fy193h0b8b.execute-api.us-east-1.amazonaws.com/dev/user/login';
 
     try {
       setLoading(true);
@@ -103,6 +103,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setPersist(true);
         setUserId(response.data?.userId);
         Cookies.set('token', response.data?.token);
+        Cookies.set('userId', response.data?.userId);
         router.push('/');
       }
     } catch (error: any) {
@@ -114,6 +115,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // 3) Log out user
   const logout = async () => {
     Cookies.remove('token');
+    Cookies.remove('userId');
     setLoggedIn(false);
     router.push('/auth');
   };

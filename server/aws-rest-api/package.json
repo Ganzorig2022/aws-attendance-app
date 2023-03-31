@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node check.js"
+    "start": "node test.js"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.299.0",

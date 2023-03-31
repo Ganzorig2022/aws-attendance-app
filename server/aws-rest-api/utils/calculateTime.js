@@ -1,5 +1,5 @@
-const calculateTime = async () => {
-  let arriveDescription;
+module.exports.calculateTime = async () => {
+  let arriveDescription = '';
 
   const lessonStarts = new Date(); //Fri Mar 31 2023 11:17:09 GMT+0800 (Ulaanbaatar Standard Time)
   lessonStarts.setHours(9, 0, 0); // Fri Mar 31 2023 09:00:00 GMT+0800 (Ulaanbaatar Standard Time)
@@ -17,10 +17,6 @@ const calculateTime = async () => {
   if (subtractedTime > 120) {
     arriveDescription = `За арай арай. Бүхэл бүтэн ${subtractedTime} мин хоцорсон байна штээ.`;
   }
-  const a = { subtractedTime, arriveDescription };
-  console.log(a);
 
   return { subtractedTime, arriveDescription };
 };
-
-calculateTime();

@@ -11,7 +11,7 @@ const Logout = () => {
         onClick={logout}
         type='submit'
       >
-        Log out
+        Log out from AWS
       </button>
     </div>
   );

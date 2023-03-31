@@ -1,6 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
 import { LoginView } from '@/recoil/loginAtom';
-import axios from 'axios';
 import Head from 'next/head';
 import Image from 'next/image';
 import React, { useState } from 'react';
@@ -16,7 +15,7 @@ type Props = {
 };
 
 const Login = ({ toggleView }: Props) => {
-  const { signIn, loggedIn, loading } = useAuth();
+  const { signIn, loading } = useAuth();
 
   //react hook form
   const {
@@ -30,8 +29,6 @@ const Login = ({ toggleView }: Props) => {
     const { email, password } = inputs;
 
     await signIn(email, password);
-
-    console.log('USER SIGN IN STATUS=====>', loggedIn);
   };
 
   return (

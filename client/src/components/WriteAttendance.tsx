@@ -1,20 +1,23 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import axios from 'axios';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilValue } from 'recoil';
 import { userIdState } from '@/recoil/userIdAtom';
+import Cookies from 'js-cookie';
 
 const WriteAttendance = () => {
-  const userId = useRecoilValue(userIdState);
-  console.log(userId);
+  const { userId } = useRecoilValue(userIdState);
+  const cookieUserId = Cookies.get('userId');
+  const ID = userId === '' ? cookieUserId : userId;
 
+  console.log('ID---->', ID);
   const writeData = async () => {
     const endpoint =
-      'https://qfk9ecqt7i.execute-api.us-east-1.amazonaws.com/dev/user/attendance';
+      'https://fy193h0b8b.execute-api.us-east-1.amazonaws.com/dev/user/attendance';
 
-    const response = await axios.post(endpoint, { userId });
-
-    console.log(response);
+    const response = await axios.post(endpoint, {
+      userId: ID,
+    });
   };
 
   return (
@@ -24,7 +27,7 @@ const WriteAttendance = () => {
         onClick={writeData}
         type='submit'
       >
-        Write data to AWS DynamoDB
+        Write own data to AWS
       </button>
     </div>
   );

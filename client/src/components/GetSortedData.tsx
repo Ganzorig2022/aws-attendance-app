@@ -4,7 +4,9 @@ import axios from 'axios';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { userIdState } from '@/recoil/userIdAtom';
 
-const GetAttendance = () => {
+const GetSortedData = () => {
+  const SORT_KEY = 'Ganzorig';
+
   const userId = useRecoilValue(userIdState);
   // console.log(userId);
 
@@ -22,10 +24,10 @@ const GetAttendance = () => {
         onClick={writeData}
         type='submit'
       >
-        Get own data from AWS DynamoDB
+        Get sorted data from AWS
       </button>
     </div>
   );
 };
 
-export default GetAttendance;
+export default GetSortedData;

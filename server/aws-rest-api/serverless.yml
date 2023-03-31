@@ -51,11 +51,18 @@ functions:
           path: user/attendance
           method: post
           cors: true
-  getAttendance:
-    handler: handlers/getAttendance.getAttendance
+  getOwnAttendance:
+    handler: handlers/getOwnAttendance.getOwnAttendance
     events:
       - http:
-          path: user/attendance
+          path: user/own-attendance
+          method: get
+          cors: true
+  getSortedAttendance:
+    handler: handlers/getSortedAttendance.getSortedAttendance
+    events:
+      - http:
+          path: user/sorted-attendance
           method: get
           cors: true
 

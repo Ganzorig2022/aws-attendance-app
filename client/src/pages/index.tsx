@@ -1,8 +1,9 @@
-import GetAttendance from '@/components/auth/GetAttendance';
 import Logout from '@/components/auth/Logout';
-import WriteAttendance from '@/components/auth/WriteAttendance';
 import { useAuth } from '@/hooks/useAuth';
 import Head from 'next/head';
+import GetOwnAttendance from '@/components/GetOwnAttendance';
+import WriteAttendance from '@/components/WriteAttendance';
+import GetSortedData from '@/components/GetSortedData';
 
 export default function Home() {
   const { persist } = useAuth();
@@ -23,7 +24,8 @@ export default function Home() {
         </h1>
         <Logout />
         <WriteAttendance />
-        <GetAttendance />
+        <GetOwnAttendance />
+        <GetSortedData />
       </div>
     </>
   );

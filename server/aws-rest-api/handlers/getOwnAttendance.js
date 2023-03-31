@@ -6,7 +6,7 @@ const db = new DynamoDB();
 
 const TABLE_NAME = process.env.ATTENDANCE_TABLE;
 
-module.exports.getAttendance = async (event) => {
+module.exports.getOwnAttendance = async (event) => {
   try {
     const { Items } = await db.scan({
       TableName: TABLE_NAME,
@@ -19,7 +19,7 @@ module.exports.getAttendance = async (event) => {
         'Access-Control-Allow-Headers': '*',
       },
       body: JSON.stringify({
-        data: Items.map((el) => unmarshall(el)),
+        data: Items,
         message: 'User data arrived successfully.',
       }),
     };
@@ -38,4 +38,7 @@ module.exports.getAttendance = async (event) => {
   }
 };
 
-// # https://cloudkatha.com/how-to-create-dynamodb-table-with-global-secondary-index-using-cloudformation/
+// https://cloudkatha.com/how-to-create-dynamodb-table-with-global-secondary-index-using-cloudformation/
+
+// https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.html
+// Query results are always sorted by the sort key value. If the data type of the sort key is Number, the results are returned in numeric order. Otherwise, the results are returned in order of UTF-8 bytes. By default, the sort order is ascending. To reverse the order, set the ScanIndexForward parameter to false.
