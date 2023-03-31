@@ -1,4 +1,6 @@
+import GetAttendance from '@/components/auth/GetAttendance';
 import Logout from '@/components/auth/Logout';
+import WriteAttendance from '@/components/auth/WriteAttendance';
 import { useAuth } from '@/hooks/useAuth';
 import Head from 'next/head';
 
@@ -17,10 +19,22 @@ export default function Home() {
       </Head>
       <div className='flex flex-col items-center justify-center'>
         <h1 className='text-3xl font-bold underline text-red-500'>
-          Hello world!
+          Hello GUYS!
         </h1>
         <Logout />
+        <WriteAttendance />
+        <GetAttendance />
       </div>
     </>
   );
 }
+
+// TASK - 2023-3-31
+// 1) userId-gaa context-aa awna. Login hiiheer
+// 2) FRONTEND: Home page-eesee button darhar axios.post "/attendes" - url-aar body-oor ni userId bichne.
+// 3) BACKEND: event.body userId awna, attendance table rvv bichne.
+// 4) userId = partition key, createdAt = sort key (odoo tsagaa hadgalna)
+// 4) createdAt, description dr == ireh estoi tsagaasaa - Date.now(). Hotsorson tuhai table dr hadgalna.
+// 5) FRONTEND: backend-eesee hotsorson medeelellin data awna.
+
+// ERD --> attendance table --> 1. userId, 2. createdAt 3. description

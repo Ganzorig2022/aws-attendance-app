@@ -37,6 +37,7 @@ module.exports.loginUser = async (event) => {
             'Access-Control-Allow-Headers': '*',
           },
           body: JSON.stringify({
+            userId,
             loggedIn: true,
             token,
             message: 'User has logged successfully.',

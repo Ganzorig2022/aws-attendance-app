@@ -3,6 +3,7 @@ frameworkVersion: '3'
 
 custom:
   tableName: 'Users'
+  attendanceTableName: 'Attendance-dev'
   hashKey: 'userId'
 
 provider:
@@ -25,6 +26,7 @@ provider:
 
   environment:
     USERS_TABLE: ${self:custom.tableName}
+    ATTENDANCE_TABLE: ${self:custom.attendanceTableName}
     HASH_KEY: ${self:custom.hashKey}
 
 functions:
@@ -41,6 +43,20 @@ functions:
       - http:
           path: user/login
           method: post
+          cors: true
+  createAttendance:
+    handler: handlers/createAttendance.createAttendance
+    events:
+      - http:
+          path: user/attendance
+          method: post
+          cors: true
+  getAttendance:
+    handler: handlers/getAttendance.getAttendance
+    events:
+      - http:
+          path: user/attendance
+          method: get
           cors: true
 
 resources:
@@ -65,7 +81,19 @@ resources:
                 KeyType: HASH
             Projection:
               ProjectionType: ALL
-            # ProvisionedThroughput:
-            #   ReadCapacityUnits: 5
-            #   WriteCapacityUnits: 5
+    AttendanceTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: N
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:custom.attendanceTableName}
 # Note: Please note that when BillingMode is set to PAY_PER_REQUEST, you can not specify ProvisionedThroughput. Either you provide ProvisionedThroughput RCU, WCU values on the base table and GSI both or make BillingMode on the base table to be PAY_PER_REQUEST and don’t specify ProvisionedThroughput anywhere.

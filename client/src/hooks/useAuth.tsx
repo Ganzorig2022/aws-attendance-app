@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useRouter } from 'next/router';
 import React, {
   createContext,
@@ -8,7 +9,9 @@ import React, {
   useState,
 } from 'react';
 import axios from 'axios';
-import { deleteCookie, getCookie, setCookie, hasCookie } from 'cookies-next';
+import Cookies from 'js-cookie';
+import { useRecoilState } from 'recoil';
+import { userIdState } from '@/recoil/userIdAtom';
 
 //Creating Auth Context
 interface AuthType {
@@ -40,29 +43,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null); //User type from firebase;
   const [loggedIn, setLoggedIn] = useState(false);
-  const [persist, setPersist] = useState(hasCookie('token'));
+  const [persist, setPersist] = useState(false);
+  const [userId, setUserId] = useRecoilState(userIdState);
 
-  //Check the user's TOKEN
   useEffect(() => {
-    if (!persist) {
+    const token = Cookies.get('token');
+    if (token) {
+      setLoggedIn(true);
+      setPersist(true);
+      console.log('<<<<<<USER STILL SIGNED IN>>>>>>');
+    }
+    if (!token) {
+      setPersist(false);
       setLoggedIn(false);
       router.push('/auth');
       console.log('<<<<<< USER LOGGED OUT>>>>>>');
     }
-    if (persist) {
-      setLoggedIn(true);
-      console.log('<<<<<<USER STILL SIGNED IN>>>>>>');
-    }
-  }, [persist]);
+  }, []);
 
   // 1) Create user
   const signUp = async (email: string, password: string) => {
     // AWS API gateway URL needs here....
     const endpoint =
-      'https://6ofxmxo37f.execute-api.us-east-1.amazonaws.com/dev/user/signup';
-
-    //POST - https://6ofxmxo37f.execute-api.us-east-1.amazonaws.com/dev/user/signup
-    //POST - https://6ofxmxo37f.execute-api.us-east-1.amazonaws.com/dev/user/login
+      'https://qfk9ecqt7i.execute-api.us-east-1.amazonaws.com/dev/user/signup';
 
     try {
       setLoading(true);
@@ -72,7 +75,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (response.data?.loggedIn) {
         setLoading(false);
         setLoggedIn(true);
-        setCookie('token', response.data?.token);
+        setUserId(response.data?.userId);
+        Cookies.set('token', response.data?.token);
         router.push('/');
       }
     } catch (error: any) {
@@ -86,7 +90,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signIn = async (email: string, password: string) => {
     // AWS API gateway URL needs here....
     const endpoint =
-      'https://6ofxmxo37f.execute-api.us-east-1.amazonaws.com/dev/user/login';
+      'https://qfk9ecqt7i.execute-api.us-east-1.amazonaws.com/dev/user/login';
 
     try {
       setLoading(true);
@@ -97,7 +101,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setLoading(false);
         setLoggedIn(true);
         setPersist(true);
-        setCookie('token', response.data?.token);
+        setUserId(response.data?.userId);
+        Cookies.set('token', response.data?.token);
         router.push('/');
       }
     } catch (error: any) {
@@ -108,14 +113,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
   // 3) Log out user
   const logout = async () => {
-    deleteCookie('token');
+    Cookies.remove('token');
     setLoggedIn(false);
     router.push('/auth');
   };
 
   const memoedValue = useMemo(
     () => ({ user, signUp, signIn, loading, logout, loggedIn, persist }),
-    [user, loading]
+    [user, loading, loggedIn, signIn, persist, logout]
   );
 
   return (

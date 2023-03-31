@@ -5,10 +5,10 @@ import { RecoilRoot } from 'recoil';
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <AuthProvider>
-      <RecoilRoot>
+    <RecoilRoot>
+      <AuthProvider>
         <Component {...pageProps} />
-      </RecoilRoot>
-    </AuthProvider>
+      </AuthProvider>
+    </RecoilRoot>
   );
 }

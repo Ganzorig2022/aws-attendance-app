@@ -40,6 +40,7 @@ module.exports.createUser = async (event, context) => {
       },
       body: JSON.stringify({
         loggedIn: true,
+        userId: USER_ID,
         token,
         message: 'User has been successfully signed up!',
       }),

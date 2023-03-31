@@ -1,6 +1,5 @@
 import { loginOpenState } from '@/recoil/loginAtom';
 import React from 'react';
-import { deleteCookie } from 'cookies-next';
 import { useAuth } from '@/hooks/useAuth';
 
 const Logout = () => {
