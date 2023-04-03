@@ -1,0 +1,35 @@
+service: aws-s3-bucket
+frameworkVersion: '3'
+
+custom:
+  s3:
+    bucket: ganzo-s3-bucket
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+
+functions:
+  createS3:
+    handler: index.createS3
+
+resources:
+  Resources:
+    GanzoS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ganzo-s3-bucket
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref GanzoS3Bucket
+        PolicyDocument:
+          Statement:
+            - Action:
+                - s3:GetObject
+                - s3:PutObject
+              Resource:
+                - arn:aws:s3:::${self:custom.s3.bucket}/*
+                # - arn:aws:s3:::${self:custom.s3.bucket}
+              Effect: Allow
+              Principal: '*'
