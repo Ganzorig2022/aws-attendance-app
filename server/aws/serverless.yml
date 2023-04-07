@@ -1,4 +1,4 @@
-service: aws-rest-api
+service: aws-attendance-app
 frameworkVersion: '3'
 
 custom:

@@ -19,15 +19,17 @@ const Signup = ({ toggleView }: Props) => {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<Inputs>();
-  const { signUp, loggedIn, loading } = useAuth();
+  const { signUp, loggedIn, loading, error } = useAuth();
 
   const onSubmit: SubmitHandler<Inputs> = async (inputs) => {
     const { email, password } = inputs;
 
     await signUp(email, password);
+
+    if (error === 'Network Error')
+      alert('Network error. Something wrong with backend service.');
 
     console.log('USER SIGNUP STATUS=====>', loggedIn);
   };

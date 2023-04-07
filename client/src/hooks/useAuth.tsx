@@ -22,6 +22,7 @@ interface AuthType {
   loading: boolean;
   loggedIn: boolean;
   persist: boolean;
+  error: string;
 }
 
 const AuthContext = createContext<AuthType>({
@@ -32,6 +33,7 @@ const AuthContext = createContext<AuthType>({
   loading: false,
   loggedIn: false,
   persist: false,
+  error: '',
 });
 
 interface AuthProviderProps {
@@ -45,6 +47,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [persist, setPersist] = useState(false);
   const [userId, setUserId] = useRecoilState(userIdState);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const token = Cookies.get('token');
@@ -63,8 +66,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // 1) Create user
   const signUp = async (email: string, password: string) => {
     // AWS API gateway URL needs here....
-    const endpoint =
-      'https://fy193h0b8b.execute-api.us-east-1.amazonaws.com/dev/user/signup';
+    const endpoint = process.env.NEXT_PUBLIC_AWS_SIGNUP_ENDPOINT!;
 
     try {
       setLoading(true);
@@ -80,7 +82,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         router.push('/');
       }
     } catch (error: any) {
-      console.log(error.message);
+      console.log(error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -89,8 +92,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // 2) Sign In user
   const signIn = async (email: string, password: string) => {
     // AWS API gateway URL needs here....
-    const endpoint =
-      'https://fy193h0b8b.execute-api.us-east-1.amazonaws.com/dev/user/login';
+    const endpoint = process.env.NEXT_PUBLIC_AWS_LOGIN_ENDPOINT!;
 
     try {
       setLoading(true);
@@ -108,6 +110,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     } catch (error: any) {
       console.log(error.message);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -121,8 +124,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const memoedValue = useMemo(
-    () => ({ user, signUp, signIn, loading, logout, loggedIn, persist }),
-    [user, loading, loggedIn, signIn, persist, logout]
+    () => ({ user, signUp, signIn, loading, logout, loggedIn, persist, error }),
+    [user, loading, loggedIn, signIn, persist, logout, error]
   );
 
   return (
