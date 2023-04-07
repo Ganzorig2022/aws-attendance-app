@@ -4,6 +4,7 @@ import Head from 'next/head';
 import GetOwnAttendance from '@/components/GetOwnAttendance';
 import WriteAttendance from '@/components/WriteAttendance';
 import GetSortedData from '@/components/GetSortedData';
+import { ToastContainer } from 'react-toastify';
 
 export default function Home() {
   const { persist } = useAuth();
@@ -26,6 +27,7 @@ export default function Home() {
         <WriteAttendance />
         <GetOwnAttendance />
         <GetSortedData />
+        <ToastContainer position='top-center' />
       </div>
     </>
   );

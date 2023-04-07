@@ -1,12 +1,11 @@
+import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { userTableState, userTableType } from '@/recoil/userTableAtom';
-import React from 'react';
 import { useRecoilValue } from 'recoil';
 
 const User = () => {
   const { persist } = useAuth();
   const userTable = useRecoilValue(userTableState);
-  console.log('RECOIL=======>>>>>', userTable);
 
   if (!persist) return null;
 

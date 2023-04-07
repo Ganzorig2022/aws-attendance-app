@@ -2,72 +2,121 @@ service: aws-attendance-app
 frameworkVersion: '3'
 
 custom:
-  tableName: 'Users'
-  attendanceTableName: 'Attendance-dev'
-  hashKey: 'userId'
+  table:
+    users: Users
+    attendance: Attendance
+  s3:
+    bucket: user-image
+
+  hash:
+    userId: userId
 
 provider:
   name: aws
   runtime: nodejs16.x
+  # Hong Kong ping was lower than any others. According to "https://www.cloudping.info/".
+  region: ap-east-1
   iam:
     role:
       statements:
         - Effect: Allow
           Action:
+            - s3:*
             - dynamodb:Query
             - dynamodb:Scan
             - dynamodb:GetItem
             - dynamodb:PutItem
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
+            - rekognition:DetectText
+          Resource: '*'
           # Resource:
           #   - Fn::GetAtt: [UsersTable, Arn]
-          Resource: '*'
-
   environment:
-    USERS_TABLE: ${self:custom.tableName}
-    ATTENDANCE_TABLE: ${self:custom.attendanceTableName}
-    HASH_KEY: ${self:custom.hashKey}
+    USERS_TABLE: ${self:custom.table.users}
+    ATTENDANCE_TABLE: ${self:custom.table.attendance}
+    USER_ID_HASH_KEY: ${self:custom.hash.userId}
 
 functions:
-  create:
-    handler: handlers/createUser.createUser
+  # AUTH FUNCTIONS
+  signup:
+    handler: handlers/auth/signup.signup
     events:
       - http:
-          path: user/signup
+          path: auth/signup
           method: post
           cors: true
   login:
-    handler: handlers/loginUser.loginUser
+    handler: handlers/auth/login.login
     events:
       - http:
-          path: user/login
+          path: auth/login
           method: post
           cors: true
+  # ATTENDANCE FUNCTIONS
   createAttendance:
-    handler: handlers/createAttendance.createAttendance
+    handler: handlers/attendance/createAttendance.createAttendance
     events:
       - http:
-          path: user/attendance
+          path: attendance
           method: post
           cors: true
-  getOwnAttendance:
-    handler: handlers/getOwnAttendance.getOwnAttendance
+  # getOwnAttendance:
+  #   handler: handlers/getOwnAttendance.getOwnAttendance
+  #   events:
+  #     - http:
+  #         path: own-attendance
+  #         method: get
+  #         cors: true
+  # getSortedAttendance:
+  #   handler: handlers/getSortedAttendance.getSortedAttendance
+  #   events:
+  #     - http:
+  #         path: sorted-attendance
+  #         method: get
+  #         cors: true
+
+  # IMAGE UPLOADER FUNCTIONS
+  getSignURL:
+    handler: handlers/upload/getSignURL.getSignURL
     events:
       - http:
-          path: user/own-attendance
-          method: get
+          path: upload
+          method: post
           cors: true
-  getSortedAttendance:
-    handler: handlers/getSortedAttendance.getSortedAttendance
+
+  getListBucket:
+    handler: handlers/upload/getListBucket.getListBucket
     events:
       - http:
-          path: user/sorted-attendance
+          path: image
           method: get
           cors: true
 
+  deleteImage:
+    handler: handlers/upload/deleteImage.deleteImage
+    events:
+      - http:
+          path: image
+          method: delete
+          cors: true
+
+  # s3Trigger:
+  #   # this function will be triggered by when image is uploaded on AWS S3
+  #   handler: handlers/s3Trigger.s3Trigger
+  #   events:
+  #     - s3:
+  #         bucket: ${self:custom.s3.bucket}
+  #         event:
+  #           - s3:ObjectCreated:*
+  #         # rules:
+  #         #   - prefix: /
+  #         #   - suffix: .jpg
+  #         existing: true
+
 resources:
   Resources:
+    # FOR USER TABLE
     UsersTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -80,7 +129,7 @@ resources:
           - AttributeName: userId
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
-        TableName: ${self:custom.tableName}
+        TableName: ${self:custom.table.users}
         GlobalSecondaryIndexes:
           - IndexName: email-index
             KeySchema:
@@ -88,6 +137,7 @@ resources:
                 KeyType: HASH
             Projection:
               ProjectionType: ALL
+    # FOR ATTENDANCE TABLE
     AttendanceTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -102,5 +152,41 @@ resources:
           - AttributeName: createdAt
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
-        TableName: ${self:custom.attendanceTableName}
+        TableName: ${self:custom.table.attendance}
+    # FOR USER IMAGE BUCKET
+    GanzoS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.s3.bucket}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - PUT
+                - GET
+                - DELETE
+              AllowedOrigins:
+                - '*'
+    # FOR USER IMAGE BUCKET
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref GanzoS3Bucket
+        PolicyDocument:
+          Statement:
+            - Action:
+                - s3:ListBucket
+                - s3:GetObject
+                - s3:PutObject
+                - s3:DeleteObject
+              Resource:
+                - arn:aws:s3:::${self:custom.s3.bucket}/*
+                # For only list bucket...
+                - arn:aws:s3:::${self:custom.s3.bucket}
+              Effect: Allow
+              Principal: '*'
 # Note: Please note that when BillingMode is set to PAY_PER_REQUEST, you can not specify ProvisionedThroughput. Either you provide ProvisionedThroughput RCU, WCU values on the base table and GSI both or make BillingMode on the base table to be PAY_PER_REQUEST and don’t specify ProvisionedThroughput anywhere.
+
+# CorsConfiguration
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-cors.html#cfn-s3-bucket-cors-corsrule

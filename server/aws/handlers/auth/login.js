@@ -2,12 +2,13 @@
 
 const { DynamoDB } = require('@aws-sdk/client-dynamodb');
 const bcrypt = require('bcryptjs');
-const { signToken } = require('../utils/signToken');
+const { signToken } = require('../../utils/signToken');
 const db = new DynamoDB();
 
+// From serverless.yml
 const TABLE_NAME = process.env.USERS_TABLE; // "Users" irne.
 
-module.exports.loginUser = async (event) => {
+module.exports.login = async (event) => {
   let { email, password } = JSON.parse(event.body);
   const GLOBAL_INDEX = email;
 

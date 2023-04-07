@@ -5,6 +5,8 @@ import Login from '@/components/auth/Login';
 import { useRecoilState } from 'recoil';
 import { loginOpenState } from '@/recoil/loginAtom';
 import Signup from '@/components/auth/Signup';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Auth = () => {
   const [loginOpen, setLoginOpen] = useRecoilState(loginOpenState);
@@ -26,6 +28,7 @@ const Auth = () => {
         {/* Login, SignUp page */}
         {loginOpen.view === 'login' && <Login toggleView={toggleView} />}
         {loginOpen.view === 'signup' && <Signup toggleView={toggleView} />}
+        <ToastContainer position='top-center' />
       </div>
     </div>
   );

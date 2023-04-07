@@ -1,9 +1,9 @@
-import { useAuth } from '@/hooks/useAuth';
-import { LoginView } from '@/recoil/loginAtom';
 import Head from 'next/head';
 import Image from 'next/image';
-import React, { useState } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useAuth } from '@/hooks/useAuth';
+import { LoginView } from '@/recoil/loginAtom';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 
 type Inputs = {
   email: string;
@@ -15,13 +15,12 @@ type Props = {
 };
 
 const Login = ({ toggleView }: Props) => {
-  const { signIn, loading } = useAuth();
+  const { signIn, loading, error } = useAuth();
 
   //react hook form
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<Inputs>();
 
@@ -29,6 +28,13 @@ const Login = ({ toggleView }: Props) => {
     const { email, password } = inputs;
 
     await signIn(email, password);
+
+    if (error === 'Network Error') {
+      toast.error('Network error. Something wrong with backend service.');
+      return;
+    }
+
+    toast.success('Successfully signed.');
   };
 
   return (

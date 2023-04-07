@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "@aws-sdk/s3-request-presigner": "^3.304.0",
-    "aws-client-s3": "^1.4.5"
-  }
-}

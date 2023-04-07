@@ -1,18 +1,17 @@
 'use strict';
-require('dotenv').config();
 
 const { DynamoDB } = require('@aws-sdk/client-dynamodb');
-const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
+const { marshall } = require('@aws-sdk/util-dynamodb');
 const bcrypt = require('bcryptjs');
 const uuid = require('uuid');
-const jwt = require('jsonwebtoken');
-const { signToken } = require('../utils/signToken');
+const { signToken } = require('../../utils/signToken');
 const db = new DynamoDB();
 
+// From serverless.yml
 const TABLE_NAME = process.env.USERS_TABLE; // "Users" irne.
-const HASH_KEY = process.env.HASH_KEY; // "userId" irne.
+const HASH_KEY = process.env.USER_ID_HASH_KEY; // "userId" irne.
 
-module.exports.createUser = async (event, context) => {
+module.exports.signup = async (event, context) => {
   let { email, password } = JSON.parse(event.body);
   const USER_ID = uuid.v1();
 

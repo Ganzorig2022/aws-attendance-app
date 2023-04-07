@@ -1,9 +1,9 @@
-import { useAuth } from '@/hooks/useAuth';
-import { LoginView } from '@/recoil/loginAtom';
 import Head from 'next/head';
 import Image from 'next/image';
-import React, { useState } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useAuth } from '@/hooks/useAuth';
+import { LoginView } from '@/recoil/loginAtom';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 
 type Inputs = {
   email: string;
@@ -28,10 +28,12 @@ const Signup = ({ toggleView }: Props) => {
 
     await signUp(email, password);
 
-    if (error === 'Network Error')
-      alert('Network error. Something wrong with backend service.');
+    if (error === 'Network Error') {
+      toast.error('Network error. Something wrong with backend service.');
+      return;
+    }
 
-    console.log('USER SIGNUP STATUS=====>', loggedIn);
+    toast.success('Successfully signed.');
   };
 
   return (
