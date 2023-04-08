@@ -117,6 +117,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
   // 3) Log out user
   const logout = async () => {
+    localStorage.removeItem('recoil-persist');
     Cookies.remove('token');
     Cookies.remove('userId');
     setLoggedIn(false);

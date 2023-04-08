@@ -5,6 +5,8 @@ import GetOwnAttendance from '@/components/GetOwnAttendance';
 import WriteAttendance from '@/components/WriteAttendance';
 import GetSortedData from '@/components/GetSortedData';
 import { ToastContainer } from 'react-toastify';
+import Header from '@/components/Header';
+import UploadImage from '@/components/UploadImage';
 
 export default function Home() {
   const { persist } = useAuth();
@@ -19,14 +21,12 @@ export default function Home() {
         <meta name='viewport' content='width=device-width, initial-scale=1' />
         <link rel='icon' href='/favicon.ico' />
       </Head>
+      <Header />
       <div className='flex flex-col items-center justify-center'>
-        <h1 className='text-3xl font-bold underline text-red-500'>
-          Hello GUYS!
-        </h1>
-        <Logout />
-        <WriteAttendance />
+        {/* <WriteAttendance />
         <GetOwnAttendance />
-        <GetSortedData />
+        <GetSortedData /> */}
+        <UploadImage />
         <ToastContainer position='top-center' />
       </div>
     </>

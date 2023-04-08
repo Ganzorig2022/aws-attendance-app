@@ -1,17 +1,15 @@
 'use strict';
+// require('dotenv').config();
 
 const { S3Client, ListObjectsV2Command } = require('@aws-sdk/client-s3');
 const client = new S3Client({});
 
-const BUCKET_NAME = process.env.BUCKET_NAME; // 'user-image" from serverless.yml
+const BUCKET_NAME = process.env.BUCKET_NAME; // 'attendance-image-bucket" from serverless.yml
 
 module.exports.getListBucket = async (event) => {
   try {
     const command = new ListObjectsV2Command({
       Bucket: BUCKET_NAME,
-      // The default and maximum number of keys returned is 1000. This limits it to
-      // one for demonstration purposes.
-      // MaxKeys: 1,
     });
 
     const { Contents, Name } = await client.send(command);

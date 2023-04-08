@@ -5,17 +5,22 @@ custom:
   table:
     users: Users
     attendance: Attendance
+    images: Images
   s3:
-    bucket: user-image
+    # bucket name MUST be unique!!!!!!. Otherwise it'll respond with "bucket already exists" error...
+    bucket: attendance-image-bucket
 
   hash:
     userId: userId
+    imageName: imageName
 
 provider:
   name: aws
   runtime: nodejs16.x
   # Hong Kong ping was lower than any others. According to "https://www.cloudping.info/".
+  # But REKOGNITION is not available for Hong Kong region...
   region: ap-east-1
+  # region: ap-northeast-1
   iam:
     role:
       statements:
@@ -28,14 +33,17 @@ provider:
             - dynamodb:PutItem
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
-            - rekognition:DetectText
+            # - rekognition:DetectText
+            - rekognition:CompareFaces
           Resource: '*'
-          # Resource:
-          #   - Fn::GetAtt: [UsersTable, Arn]
+
   environment:
+    BUCKET_NAME: ${self:custom.s3.bucket}
     USERS_TABLE: ${self:custom.table.users}
+    IMAGES_TABLE: ${self:custom.table.images}
     ATTENDANCE_TABLE: ${self:custom.table.attendance}
     USER_ID_HASH_KEY: ${self:custom.hash.userId}
+    IMAGE_NAME_HASH_KEY: ${self:custom.hash.imageName}
 
 functions:
   # AUTH FUNCTIONS
@@ -53,29 +61,6 @@ functions:
           path: auth/login
           method: post
           cors: true
-  # ATTENDANCE FUNCTIONS
-  createAttendance:
-    handler: handlers/attendance/createAttendance.createAttendance
-    events:
-      - http:
-          path: attendance
-          method: post
-          cors: true
-  # getOwnAttendance:
-  #   handler: handlers/getOwnAttendance.getOwnAttendance
-  #   events:
-  #     - http:
-  #         path: own-attendance
-  #         method: get
-  #         cors: true
-  # getSortedAttendance:
-  #   handler: handlers/getSortedAttendance.getSortedAttendance
-  #   events:
-  #     - http:
-  #         path: sorted-attendance
-  #         method: get
-  #         cors: true
-
   # IMAGE UPLOADER FUNCTIONS
   getSignURL:
     handler: handlers/upload/getSignURL.getSignURL
@@ -101,22 +86,54 @@ functions:
           method: delete
           cors: true
 
-  # s3Trigger:
-  #   # this function will be triggered by when image is uploaded on AWS S3
-  #   handler: handlers/s3Trigger.s3Trigger
+  # this function will be triggered by when image is uploaded on AWS S3
+  writeImageData:
+    handler: handlers/upload/writeImageData.writeImageData
+    events:
+      - s3:
+          bucket: ${self:custom.s3.bucket}
+          event:
+            - s3:ObjectCreated:*
+          # rules:
+          #   - prefix: /
+          #   - suffix: .jpg
+          existing: true
+  compareFace:
+    handler: handlers/compare/compareFace.compareFace
+    events:
+      - stream:
+          type: dynamodb
+          # To GET ARN value ==> dynamodb --> Table --> Update ssettings --> Exports and Streams -->  DynamoDB stream details--> Turn on --> New Image
+          arn: arn:aws:dynamodb:ap-east-1:930277727374:table/Images/stream/2023-04-08T14:12:09.118
+          # 1 dor 10 l orj irwel event gej vzne.
+          batchSize: 10
+          startingPosition: LATEST
+  # ATTENDANCE FUNCTIONS
+  createAttendance:
+    handler: handlers/attendance/createAttendance.createAttendance
+    events:
+      - http:
+          path: attendance
+          method: post
+          cors: true
+  # getOwnAttendance:
+  #   handler: handlers/getOwnAttendance.getOwnAttendance
   #   events:
-  #     - s3:
-  #         bucket: ${self:custom.s3.bucket}
-  #         event:
-  #           - s3:ObjectCreated:*
-  #         # rules:
-  #         #   - prefix: /
-  #         #   - suffix: .jpg
-  #         existing: true
+  #     - http:
+  #         path: own-attendance
+  #         method: get
+  #         cors: true
+  # getSortedAttendance:
+  #   handler: handlers/getSortedAttendance.getSortedAttendance
+  #   events:
+  #     - http:
+  #         path: sorted-attendance
+  #         method: get
+  #         cors: true
 
 resources:
   Resources:
-    # FOR USER TABLE
+    # 1) FOR USER TABLE. When user signs up.
     UsersTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -130,14 +147,29 @@ resources:
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:custom.table.users}
+        # because email is globally UNIQUE...
         GlobalSecondaryIndexes:
+          # global sec/index name
           - IndexName: email-index
             KeySchema:
+              # Partition key
               - AttributeName: email
                 KeyType: HASH
             Projection:
               ProjectionType: ALL
-    # FOR ATTENDANCE TABLE
+    # 2) FOR IMAGES TABLE. When user image is uploaded.
+    ImagesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: imageName
+            AttributeType: S
+        KeySchema:
+          - AttributeName: imageName
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:custom.table.images}
+    # 3) FOR ATTENDANCE TABLE. When user image is compared.
     AttendanceTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -153,7 +185,7 @@ resources:
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:custom.table.attendance}
-    # FOR USER IMAGE BUCKET
+    # FOR ATTENDANCE IMAGE BUCKET
     GanzoS3Bucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -168,7 +200,7 @@ resources:
                 - DELETE
               AllowedOrigins:
                 - '*'
-    # FOR USER IMAGE BUCKET
+    # FOR ATTENDANCE IMAGE BUCKET
     BucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:
