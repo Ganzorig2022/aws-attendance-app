@@ -19,8 +19,8 @@ provider:
   runtime: nodejs16.x
   # Hong Kong ping was lower than any others. According to "https://www.cloudping.info/".
   # But REKOGNITION is not available for Hong Kong region...
-  region: ap-east-1
-  # region: ap-northeast-1
+  # region: ap-east-1
+  region: ap-northeast-1
   iam:
     role:
       statements:
@@ -35,6 +35,7 @@ provider:
             - dynamodb:DeleteItem
             # - rekognition:DetectText
             - rekognition:CompareFaces
+            - lambda:InvokeFunction
           Resource: '*'
 
   environment:
@@ -98,13 +99,13 @@ functions:
           #   - prefix: /
           #   - suffix: .jpg
           existing: true
+  # this function will work by event streams when image data is written in Images table on DynamoDB
   compareFace:
     handler: handlers/compare/compareFace.compareFace
     events:
       - stream:
           type: dynamodb
-          # To GET ARN value ==> dynamodb --> Table --> Update ssettings --> Exports and Streams -->  DynamoDB stream details--> Turn on --> New Image
-          arn: arn:aws:dynamodb:ap-east-1:930277727374:table/Images/stream/2023-04-08T14:12:09.118
+          arn: !GetAtt ImagesTable.StreamArn
           # 1 dor 10 l orj irwel event gej vzne.
           batchSize: 10
           startingPosition: LATEST
@@ -169,6 +170,9 @@ resources:
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:custom.table.images}
+        # MUST Define it. Without it "compareFace" functions "arn: !GetAtt ImagesTable.StreamArn" won't work!!!!!!!
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
     # 3) FOR ATTENDANCE TABLE. When user image is compared.
     AttendanceTable:
       Type: AWS::DynamoDB::Table

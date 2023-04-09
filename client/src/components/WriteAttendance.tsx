@@ -10,24 +10,24 @@ const WriteAttendance = () => {
   const cookieUserId = Cookies.get('userId');
   const ID = userId === '' ? cookieUserId : userId;
 
-  console.log('ID---->', ID);
   const writeData = async () => {
-    const endpoint =
-      'https://fy193h0b8b.execute-api.us-east-1.amazonaws.com/dev/user/attendance';
+    const endpoint = process.env.NEXT_PUBLIC_AWS_CREATE_ATTENDANCE_ENDPOINT!;
 
     const response = await axios.post(endpoint, {
       userId: ID,
     });
+
+    console.log('BACKEND RESPONSE', response);
   };
 
   return (
-    <div className='mt-5'>
+    <div className='mt-5 flex items-center justify-center'>
       <button
-        className='w-full rounded bg-[#E50914] py-3 font-semibold px-3 text-white'
+        className='rounded bg-[#E50914] py-3 font-semibold px-3 text-white'
         onClick={writeData}
         type='submit'
       >
-        Write own data to AWS
+        Write attendance data
       </button>
     </div>
   );

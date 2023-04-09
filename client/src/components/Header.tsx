@@ -58,7 +58,7 @@ const Header = () => {
             </ul>
           </div>
           <a href='/' className='btn btn-ghost normal-case text-xl '>
-            Face Rekognition App
+            Home Page
           </a>
         </div>
         <div className='navbar-center hidden lg:flex'>

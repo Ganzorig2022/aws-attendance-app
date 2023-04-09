@@ -1,4 +1,5 @@
 import Header from '@/components/Header';
+import WriteAttendance from '@/components/WriteAttendance';
 import { useRouter } from 'next/router';
 import React from 'react';
 
@@ -10,6 +11,7 @@ const Compare = () => {
   return (
     <div>
       <Header />
+      <WriteAttendance />
     </div>
   );
 };

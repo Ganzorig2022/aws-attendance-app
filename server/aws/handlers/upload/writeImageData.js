@@ -9,7 +9,7 @@ const TABLE_NAME = process.env.IMAGES_TABLE; // "Images" will come.
 const HASH_KEY = process.env.IMAGE_NAME_HASH_KEY; // "imageName" will come.
 
 module.exports.writeImageData = async (event) => {
-  //from event trigger
+  //from s3 event trigger
   const bucketName = event.Records[0].s3.bucket.name; //attendance-image-bucket
   const key = event.Records[0].s3.object.key; // 050a43c9afbe70c61ed0.png
 
@@ -66,4 +66,3 @@ module.exports.writeImageData = async (event) => {
 //     sequencer: '00643150B83641096C'
 //   }
 // }
-//https://docs.aws.amazon.com/rekognition/latest/dg/faces-comparefaces.html
