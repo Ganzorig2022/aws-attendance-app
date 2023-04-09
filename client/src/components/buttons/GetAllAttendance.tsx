@@ -4,13 +4,13 @@ import { useRouter } from 'next/router';
 import { useRecoilState } from 'recoil';
 import { userTableState } from '@/recoil/userTableAtom';
 
-const GetOwnAttendance = () => {
+const GetAllAttendance = () => {
   const router = useRouter();
   const [userTable, setUserTable] = useRecoilState(userTableState);
 
   const getData = async () => {
-    const endpoint =
-      'https://fy193h0b8b.execute-api.us-east-1.amazonaws.com/dev/user/own-attendance';
+    const endpoint = process.env.NEXT_PUBLIC_AWS_GET_ALL_ATTENDANCE_ENDPOINT!;
+
     const response = await axios.get(endpoint);
     console.log(response.data?.data);
 
@@ -33,4 +33,4 @@ const GetOwnAttendance = () => {
   );
 };
 
-export default GetOwnAttendance;
+export default GetAllAttendance;

@@ -33,9 +33,9 @@ provider:
             - dynamodb:PutItem
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
-            # - rekognition:DetectText
-            - rekognition:CompareFaces
             - lambda:InvokeFunction
+            - rekognition:CompareFaces
+            # - rekognition:DetectText
           Resource: '*'
 
   environment:
@@ -87,7 +87,7 @@ functions:
           method: delete
           cors: true
 
-  # this function will be triggered by when image is uploaded on AWS S3
+  # this function will ONLY be triggered by event trigger when image is uploaded on AWS S3
   writeImageData:
     handler: handlers/upload/writeImageData.writeImageData
     events:
@@ -99,7 +99,7 @@ functions:
           #   - prefix: /
           #   - suffix: .jpg
           existing: true
-  # this function will work by event streams when image data is written in Images table on DynamoDB
+  # this function will ONLY be triggered by event streams when image data is written in Images table on DynamoDB
   compareFace:
     handler: handlers/compare/compareFace.compareFace
     events:
@@ -109,6 +109,7 @@ functions:
           # 1 dor 10 l orj irwel event gej vzne.
           batchSize: 10
           startingPosition: LATEST
+
   # ATTENDANCE FUNCTIONS
   createAttendance:
     handler: handlers/attendance/createAttendance.createAttendance
@@ -121,14 +122,14 @@ functions:
   #   handler: handlers/getOwnAttendance.getOwnAttendance
   #   events:
   #     - http:
-  #         path: own-attendance
+  #         path: attendance/list
   #         method: get
   #         cors: true
   # getSortedAttendance:
   #   handler: handlers/getSortedAttendance.getSortedAttendance
   #   events:
   #     - http:
-  #         path: sorted-attendance
+  #         path: attendance/sort
   #         method: get
   #         cors: true
 
@@ -149,6 +150,8 @@ resources:
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:custom.table.users}
         # because email is globally UNIQUE...
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
         GlobalSecondaryIndexes:
           # global sec/index name
           - IndexName: email-index

@@ -1,5 +1,5 @@
 import Header from '@/components/Header';
-import WriteAttendance from '@/components/WriteAttendance';
+import WriteAttendance from '@/components/buttons/WriteAttendance';
 import { useRouter } from 'next/router';
 import React from 'react';
 

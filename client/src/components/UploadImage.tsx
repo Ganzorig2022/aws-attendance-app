@@ -4,9 +4,11 @@ import React, { useState } from 'react';
 import PreviewImage from './PreviewImage';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
+import Cookies from 'js-cookie';
 
 const UploadImage = () => {
   const router = useRouter();
+  const userId = Cookies.get('userId');
 
   const [loading, setLoading] = useState(false);
   const [fileData, setFileData] = useState({

@@ -12,12 +12,11 @@ exports.compareFace = async (event) => {
   const { imageName, bucketName } = event.Records[0].dynamodb.NewImage;
   // imageName --> { S: '9ed3c8bab227db272cbf.png' }
   // bucketName --> { S: 'attendance-image-bucket' }
-  const arnPrefix = 'arn:aws:lambda:ap-northeast-1:930277727374:function';
 
-  const originalPhoto = '8d5cf8afa67039f4efbf.jpg';
+  const originalPhoto = '9ff1e0004e8814046ebc.jpg';
 
   try {
-    const params = {
+    const compareFaceParams = {
       SourceImage: {
         S3Object: {
           Bucket: BUCKET_NAME,
@@ -33,8 +32,8 @@ exports.compareFace = async (event) => {
       SimilarityThreshold: 70,
     };
 
-    const result = await rekognition.compareFaces(params).promise();
-
+    const result = await rekognition.compareFaces(compareFaceParams).promise();
+    // result will return below
     /*
     {
       SourceImageFace: {
@@ -53,12 +52,14 @@ exports.compareFace = async (event) => {
 
     if (faceSimilarity > 70) {
       try {
-        const inVokeParams = {
+        const arnPrefix = 'arn:aws:lambda:ap-northeast-1:930277727374:function';
+
+        const invokeParams = {
           FunctionName: `${arnPrefix}:aws-attendance-app-dev-createAttendance`,
           InvocationType: 'Event',
           Payload: JSON.stringify({ similarity: 'identical' }),
         };
-        await lambda.invoke(inVokeParams).promise();
+        await lambda.invoke(invokeParams).promise();
 
         return {
           statusCode: 200,
@@ -73,11 +74,11 @@ exports.compareFace = async (event) => {
       console.log('Result between two faces are NOT identical');
     }
   } catch (error) {
-    console.log('ERRORRRRRRR', error);
+    console.log('Error with REKOGNITION>>>>>>>>', error);
     return {
       statusCode: 400,
       body: JSON.stringify({
-        message: 'REKOG FAILED',
+        message: 'REKOGNITION FAILED',
       }),
     };
   }

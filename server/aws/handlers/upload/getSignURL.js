@@ -13,7 +13,7 @@ module.exports.getSignURL = async (event) => {
       Bucket: bucketName, // e.g. "user-image"
       // Key: fileName, // e.g. "my-image1.jpg"
       Key: `${randomImageName(10)}.${fileExtension}`, // e.g. "7f4a7081b700dfe9bf8c.jpg"
-      ContentType: contentType, // e.g. "image.jpg"
+      ContentType: contentType, // e.g. "image.jpg",
       Expires: 3600, // will be expired after 1 hour
     };
 
