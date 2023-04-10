@@ -15,27 +15,25 @@ const UploadImage = () => {
     fileName: '',
     contentType: '',
   });
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState(
     'https://datawow.s3.amazonaws.com/blog/43/image_1/facial-recognition-connected-real-estate.png'
   );
   const [headerType, setHeaderType] = useState('');
   const [imageURLs, setImageURLs] = useState<string[]>([]);
   const [imageName, setImageName] = useState<string[]>([]);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
   const [imageOpen, setImageOpen] = useState({
     camera: false,
     file: false,
   });
+  const [cameraOpen, setCameraOpen] = useState(false);
 
-  console.log('PREVIEW>>>>>>', previewImage);
   const bucketName = process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME!;
 
   // 1) Get image data from input
   const onGetFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
 
-    console.log(e.target.files[0]);
     setSelectedFile(e.target.files[0] as any);
     setPreviewImage(URL.createObjectURL(e.target.files[0]));
 
@@ -49,7 +47,48 @@ const UploadImage = () => {
   };
 
   // 2) Upload to AWS S3 - POST request
-  const uploadToS3 = async () => {
+  const uploadOriginalImage = async () => {
+    const { fileName, contentType } = fileData;
+
+    try {
+      // AWS endpoint comes here...
+      const endpoint = process.env.NEXT_PUBLIC_AWS_GET_ORIGINAL_URL_ENDPOINT!;
+
+      const fileExtension = fileName?.substring(fileName.lastIndexOf('.') + 1); // "jpg" will return
+
+      const body = {
+        bucketName,
+        imageName: 'original',
+        fileExtension, // "jpg"
+        contentType, // "image/png"
+      };
+
+      const response = await fetchData('post', endpoint, body);
+
+      const preSignUrl = response?.data.preSignUrl;
+
+      if (preSignUrl) {
+        // last step for image upload on AWS S3 by using pre-signed URL
+
+        const result = await fetchData('put', preSignUrl, selectedFile, {
+          headers: { 'Content-Type': headerType }, // "image/png"
+        });
+        console.log('Upload result>>>>>', result?.statusText);
+        // await axios.put(preSignUrl, selectedFile, {
+        //   headers: { 'Content-Type': headerType }, // "image/png"
+        // });
+
+        toast.success('Your image is successfully uploaded!');
+
+        router.push('/compare');
+      }
+    } catch (error: any) {
+      console.log('<<<<<<ERROR FROM BACKEND>>>>:', error.message);
+      toast.error(error.message);
+    }
+  };
+  // 2) Upload to AWS S3 - POST request
+  const uploadDailyImage = async () => {
     const { fileName, contentType } = fileData;
 
     try {
@@ -57,10 +96,11 @@ const UploadImage = () => {
         return alert('Please choose a file to upload first.');
 
       // AWS endpoint comes here...
-      const endpoint = process.env.NEXT_PUBLIC_AWS_PRESIGN_URL_ENDPOINT!;
+      const endpoint = process.env.NEXT_PUBLIC_AWS_GET_DAILY_URL_ENDPOINT!;
 
       const fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1); // "png" will return
 
+      console.log(fileExtension);
       const body = {
         bucketName,
         fileExtension,
@@ -151,8 +191,14 @@ const UploadImage = () => {
 
   return (
     <div>
-      <div className='flex space-x-5'>
-        <button className='btn' onClick={() => toggle('camera')}>
+      <div className='flex space-x-2'>
+        <button
+          className='btn'
+          onClick={() => {
+            toggle('camera');
+            setCameraOpen(true);
+          }}
+        >
           Capture Image by Camera
         </button>
         <button className='btn' onClick={() => toggle('file')}>
@@ -172,13 +218,20 @@ const UploadImage = () => {
           />
         )}
         {imageOpen.camera && (
-          <WebcamCapture setPreviewImage={setPreviewImage} />
+          <WebcamCapture
+            setPreviewImage={setPreviewImage}
+            setCameraOpen={setCameraOpen}
+            cameraOpen={cameraOpen}
+            setFileData={setFileData}
+            setSelectedFile={setSelectedFile}
+          />
         )}
 
         <PreviewImage
           previewImage={previewImage}
           loading={loading}
-          uploadToS3={uploadToS3}
+          uploadOriginalImage={uploadOriginalImage}
+          uploadDailyImage={uploadDailyImage}
         />
 
         {/* <button
@@ -195,9 +248,6 @@ const UploadImage = () => {
     >
       DELETE SINGLE IMAGE
     </button> */}
-
-        {/* IMAGE CAROUSEL */}
-        {/* <Gallery imageURLs={imageURLs} Keys={imageName} /> */}
       </div>
     </div>
   );

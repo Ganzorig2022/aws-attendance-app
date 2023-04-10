@@ -17,10 +17,6 @@ custom:
 provider:
   name: aws
   runtime: nodejs16.x
-  # Hong Kong ping was lower than any others. According to "https://www.cloudping.info/".
-  # But REKOGNITION is not available for Hong Kong region...
-  # region: ap-east-1
-  region: ap-northeast-1
   iam:
     role:
       statements:
@@ -63,11 +59,18 @@ functions:
           method: post
           cors: true
   # IMAGE UPLOADER FUNCTIONS
-  getSignURL:
-    handler: handlers/upload/getSignURL.getSignURL
+  getOriginalURL:
+    handler: handlers/upload/getOriginalURL.getOriginalURL
     events:
       - http:
-          path: upload
+          path: upload/original
+          method: post
+          cors: true
+  getDailyURL:
+    handler: handlers/upload/getDailyURL.getDailyURL
+    events:
+      - http:
+          path: upload/daily
           method: post
           cors: true
 
@@ -200,9 +203,11 @@ resources:
         LifecycleConfiguration:
           Rules:
             - Status: Enabled
-              Prefix: original/
+              Prefix: original
+              ExpirationInDays: 30
             - Status: Enabled
-              Prefix: daily/
+              Prefix: daily
+              ExpirationInDays: 30
 
         CorsConfiguration:
           CorsRules:

@@ -5,14 +5,14 @@ const { randomImageName } = require('../../utils/randomImageName');
 
 const s3 = new S3();
 
-module.exports.getSignURL = async (event) => {
+module.exports.getDailyURL = async (event) => {
   const { bucketName, fileExtension, contentType } = JSON.parse(event.body); //from axios.post requst...
 
   try {
     const params = {
       Bucket: bucketName, // e.g. "user-image"
       // Key: fileName, // e.g. "my-image1.jpg"
-      Key: `original/${randomImageName(10)}.${fileExtension}`, // e.g. "7f4a7081b700dfe9bf8c.jpg"
+      Key: `daily/${randomImageName(10)}.${fileExtension}`, // e.g. "7f4a7081b700dfe9bf8c.jpg"
       ContentType: contentType, // e.g. "image.jpg",
       Expires: 3600, // will be expired after 1 hour
     };
