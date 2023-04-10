@@ -21,7 +21,7 @@ const PreviewImage = ({ previewImage, loading, uploadToS3 }: Props) => {
           />
         </figure>
         <div className='card-body'>
-          <p>This is your image you've chosen!</p>
+          <p>This is your image you have chosen!</p>
           <div className='card-actions justify-end'>
             <button
               className={`btn ${loading ? 'loading' : ''} btn-primary`}

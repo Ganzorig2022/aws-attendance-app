@@ -197,6 +197,13 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: ${self:custom.s3.bucket}
+        LifecycleConfiguration:
+          Rules:
+            - Status: Enabled
+              Prefix: original/
+            - Status: Enabled
+              Prefix: daily/
+
         CorsConfiguration:
           CorsRules:
             - AllowedHeaders:

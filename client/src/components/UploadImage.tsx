@@ -1,33 +1,41 @@
 import axios from 'axios';
-import Image from 'next/image';
 import React, { useState } from 'react';
 import PreviewImage from './PreviewImage';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
+import WebcamCapture from './Camera';
+import useAxios from '@/hooks/useAxios';
 
 const UploadImage = () => {
   const router = useRouter();
   const userId = Cookies.get('userId');
-
-  const [loading, setLoading] = useState(false);
+  const { fetchData, error, loading } = useAxios();
   const [fileData, setFileData] = useState({
     fileName: '',
     contentType: '',
   });
   const [selectedFile, setSelectedFile] = useState(null);
-  const [previewImage, setPreviewImage] = useState('');
+  const [previewImage, setPreviewImage] = useState(
+    'https://datawow.s3.amazonaws.com/blog/43/image_1/facial-recognition-connected-real-estate.png'
+  );
   const [headerType, setHeaderType] = useState('');
   const [imageURLs, setImageURLs] = useState<string[]>([]);
   const [imageName, setImageName] = useState<string[]>([]);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [imageOpen, setImageOpen] = useState({
+    camera: false,
+    file: false,
+  });
 
+  console.log('PREVIEW>>>>>>', previewImage);
   const bucketName = process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME!;
 
   // 1) Get image data from input
   const onGetFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
 
+    console.log(e.target.files[0]);
     setSelectedFile(e.target.files[0] as any);
     setPreviewImage(URL.createObjectURL(e.target.files[0]));
 
@@ -44,8 +52,6 @@ const UploadImage = () => {
   const uploadToS3 = async () => {
     const { fileName, contentType } = fileData;
 
-    setLoading(true);
-
     try {
       if (fileName === '')
         return alert('Please choose a file to upload first.');
@@ -55,31 +61,34 @@ const UploadImage = () => {
 
       const fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1); // "png" will return
 
-      const response = await axios.post(endpoint, {
+      const body = {
         bucketName,
         fileExtension,
         contentType,
-      });
+      };
 
-      const preSignUrl = response.data?.preSignUrl;
+      const response = await fetchData('post', endpoint, body);
+
+      const preSignUrl = response?.data.preSignUrl;
 
       if (preSignUrl) {
         // last step for image upload on AWS S3 by using pre-signed URL
-        await axios.put(preSignUrl, selectedFile, {
+
+        const result = await fetchData('put', preSignUrl, selectedFile, {
           headers: { 'Content-Type': headerType }, // "image/png"
         });
+        console.log('Upload result>>>>>', result?.statusText);
+        // await axios.put(preSignUrl, selectedFile, {
+        //   headers: { 'Content-Type': headerType }, // "image/png"
+        // });
 
         toast.success('Your image is successfully uploaded!');
 
         router.push('/compare');
-
-        setLoading(false);
       }
     } catch (error: any) {
       console.log('<<<<<<ERROR FROM BACKEND>>>>:', error.message);
       toast.error(error.message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -114,7 +123,7 @@ const UploadImage = () => {
       console.log('<<<<<<ERROR FROM BACKEND>>>>:', error.message);
       toast.error(error.message);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -133,34 +142,52 @@ const UploadImage = () => {
   //     }
   //   };
 
+  const toggle = (choice: string) => {
+    if (choice === 'camera')
+      setImageOpen((prev) => ({ ...prev, camera: true, file: false }));
+    if (choice === 'file')
+      setImageOpen((prev) => ({ ...prev, file: true, camera: false }));
+  };
+
   return (
     <div>
+      <div className='flex space-x-5'>
+        <button className='btn' onClick={() => toggle('camera')}>
+          Capture Image by Camera
+        </button>
+        <button className='btn' onClick={() => toggle('file')}>
+          Upload Image File
+        </button>
+      </div>
       <div className='flex flex-col items-center justify-center h-screen space-y-5'>
-        <input
-          type='file'
-          className='file-input file-input-bordered file-input-accent w-full max-w-xs '
-          onChange={onGetFiles}
-          max='6'
-          accept='.jpg,.png,.jpeg'
-          multiple
-          required
-        />
-
-        {previewImage !== '' && (
-          <PreviewImage
-            previewImage={previewImage}
-            loading={loading}
-            uploadToS3={uploadToS3}
+        {imageOpen.file && (
+          <input
+            type='file'
+            className='file-input file-input-bordered file-input-accent w-full max-w-xs '
+            onChange={onGetFiles}
+            max='6'
+            accept='.jpg,.png,.jpeg'
+            multiple
+            required
           />
         )}
+        {imageOpen.camera && (
+          <WebcamCapture setPreviewImage={setPreviewImage} />
+        )}
 
-        <button
+        <PreviewImage
+          previewImage={previewImage}
+          loading={loading}
+          uploadToS3={uploadToS3}
+        />
+
+        {/* <button
           className={`btn ${loading ? 'loading' : ''} btn-secondary`}
           // disabled
           onClick={getListBuckets}
         >
           GET LIST BUCKETS
-        </button>
+        </button> */}
         {/* <button
       className={`btn ${loading ? 'loading' : ''} btn-error `}
       // disabled
