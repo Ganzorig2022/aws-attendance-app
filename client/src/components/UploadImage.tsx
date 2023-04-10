@@ -6,10 +6,13 @@ import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
 import WebcamCapture from './Camera';
 import useAxios from '@/hooks/useAxios';
+import { useRecoilValue } from 'recoil';
+import { userIdState } from '@/recoil/userIdAtom';
 
 const UploadImage = () => {
   const router = useRouter();
-  const userId = Cookies.get('userId');
+  // const userId = Cookies.get('userId');
+  const userId = useRecoilValue(userIdState);
   const { fetchData, error, loading } = useAxios();
   const [fileData, setFileData] = useState({
     fileName: '',
@@ -29,7 +32,6 @@ const UploadImage = () => {
   const [cameraOpen, setCameraOpen] = useState(false);
 
   const bucketName = process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME!;
-
   // 1) Get image data from input
   const onGetFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -58,7 +60,7 @@ const UploadImage = () => {
 
       const body = {
         bucketName,
-        imageName: 'original',
+        userId,
         fileExtension, // "jpg"
         contentType, // "image/png"
       };
@@ -100,7 +102,6 @@ const UploadImage = () => {
 
       const fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1); // "png" will return
 
-      console.log(fileExtension);
       const body = {
         bucketName,
         fileExtension,

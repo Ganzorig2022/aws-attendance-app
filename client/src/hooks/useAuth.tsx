@@ -10,8 +10,9 @@ import React, {
 } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 import { userIdState } from '@/recoil/userIdAtom';
+import { v4 as uuidv4 } from 'uuid';
 
 //Creating Auth Context
 interface AuthType {
@@ -46,12 +47,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null); //User type from firebase;
   const [loggedIn, setLoggedIn] = useState(false);
   const [persist, setPersist] = useState(false);
-  const [userId, setUserId] = useRecoilState(userIdState);
+  const setUserId = useSetRecoilState(userIdState);
   const [error, setError] = useState('');
+  const token = Cookies.get('token');
 
   useEffect(() => {
-    const token = Cookies.get('token');
-
     if (token) {
       setPersist(true);
       console.log('<<<<<<USER STILL SIGNED IN>>>>>>');
@@ -67,18 +67,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signUp = async (email: string, password: string) => {
     // AWS API gateway URL needs here....
     const endpoint = process.env.NEXT_PUBLIC_AWS_SIGNUP_ENDPOINT!;
+    const userId = uuidv4();
+
+    setUserId(userId);
+    Cookies.set('userId', userId);
 
     try {
       setLoading(true);
 
-      const response = await axios.post(endpoint, { email, password });
+      const response = await axios.post(endpoint, { email, password, userId });
 
       if (response.data?.loggedIn) {
         setLoading(false);
         setLoggedIn(true);
-        setUserId(response.data?.userId);
         Cookies.set('token', response.data?.token);
-        Cookies.set('userId', response.data?.userId);
         router.push('/');
       }
     } catch (error: any) {
@@ -103,9 +105,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setLoading(false);
         setLoggedIn(true);
         setPersist(true);
-        setUserId(response.data?.userId);
         Cookies.set('token', response.data?.token);
-        Cookies.set('userId', response.data?.userId);
         router.push('/');
       }
     } catch (error: any) {

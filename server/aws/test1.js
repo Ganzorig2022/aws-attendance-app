@@ -15,18 +15,11 @@
 // const random = `${randomImageName(10)}.${fileExtension}`;
 
 // console.log(random); // 7f4a7081b700dfe9bf8c
-
-// const NodeCache = require('node-cache');
-// const myCache = new NodeCache();
-
-// const { setUserId } = require('./utils/asyncLocalStorage');
-
-// setUserId('123456');
-
 const { AsyncLocalStorage } = require('async_hooks');
-
 const asyncLocalStorage = new AsyncLocalStorage();
 
-asyncLocalStorage.run(new Map(), () => {
-  asyncLocalStorage.getStore().set('userId', '123456');
+asyncLocalStorage.run(null, () => {
+  const id = asyncLocalStorage.getStore();
+
+  console.log('id', id);
 });

@@ -9,24 +9,24 @@ const rekognition = new AWS.Rekognition();
 const BUCKET_NAME = process.env.BUCKET_NAME; // 'attendance-image-bucket" from serverless.yml
 
 exports.compareFace = async (event) => {
-  const { imageName, bucketName } = event.Records[0].dynamodb.NewImage;
+  const { imageName } = event.Records[0].dynamodb.NewImage;
   // imageName --> { S: '9ed3c8bab227db272cbf.png' }
-  // bucketName --> { S: 'attendance-image-bucket' }
 
-  const originalPhoto = '9ff1e0004e8814046ebc.jpg';
+  const originalImage = 'original/original.jpg'; // DYNAMIC SOLUTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  const dailyImage = `daily/${imageName.S}`;
 
   try {
     const compareFaceParams = {
       SourceImage: {
         S3Object: {
           Bucket: BUCKET_NAME,
-          Name: originalPhoto,
+          Name: originalImage,
         },
       },
       TargetImage: {
         S3Object: {
           Bucket: BUCKET_NAME,
-          Name: imageName.S,
+          Name: dailyImage,
         },
       },
       SimilarityThreshold: 70,
@@ -52,7 +52,7 @@ exports.compareFace = async (event) => {
 
     if (faceSimilarity > 70) {
       try {
-        const arnPrefix = 'arn:aws:lambda:ap-northeast-1:930277727374:function';
+        const arnPrefix = 'arn:aws:lambda:us-east-1:930277727374:function';
 
         const invokeParams = {
           FunctionName: `${arnPrefix}:aws-attendance-app-dev-createAttendance`,

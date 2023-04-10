@@ -98,9 +98,6 @@ functions:
           bucket: ${self:custom.s3.bucket}
           event:
             - s3:ObjectCreated:*
-          # rules:
-          #   - prefix: /
-          #   - suffix: .jpg
           existing: true
   # this function will ONLY be triggered by event streams when image data is written in Images table on DynamoDB
   compareFace:
@@ -109,7 +106,6 @@ functions:
       - stream:
           type: dynamodb
           arn: !GetAtt ImagesTable.StreamArn
-          # 1 dor 10 l orj irwel event gej vzne.
           batchSize: 10
           startingPosition: LATEST
 

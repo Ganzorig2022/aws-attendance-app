@@ -6,8 +6,6 @@ import React from 'react';
 const Compare = () => {
   const router = useRouter();
 
-  //   router.push('/attendance');
-
   return (
     <div>
       <Header />

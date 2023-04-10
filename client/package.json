@@ -25,10 +25,12 @@
     "react-webcam": "^7.0.1",
     "recoil": "^0.7.7",
     "recoil-persist": "^4.2.0",
-    "typescript": "5.0.2"
+    "typescript": "5.0.2",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.3",
+    "@types/uuid": "^9.0.1",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.21",
     "tailwind-scrollbar": "^3.0.0",

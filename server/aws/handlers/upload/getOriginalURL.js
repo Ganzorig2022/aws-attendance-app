@@ -5,14 +5,14 @@ const { S3 } = require('aws-sdk');
 const s3 = new S3();
 
 module.exports.getOriginalURL = async (event) => {
-  const { bucketName, fileExtension, imageName, contentType } = JSON.parse(
+  const { bucketName, fileExtension, userId, contentType } = JSON.parse(
     event.body
   ); //from axios.post requst...
 
   try {
     const params = {
       Bucket: bucketName, // e.g. "user-image"
-      Key: `original/${imageName}.${fileExtension}`, // e.g. "original.jpg"
+      Key: `original/${userId}.${fileExtension}`, // e.g. "original/1b9d6bcd-bbfd-4b2d-9b5d.jpg"
       ContentType: contentType, // e.g. "image.jpg",
       Expires: 3600, // will be expired after 1 hour
     };

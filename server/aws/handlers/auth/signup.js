@@ -3,7 +3,6 @@
 const { DynamoDB } = require('@aws-sdk/client-dynamodb');
 const { marshall } = require('@aws-sdk/util-dynamodb');
 const bcrypt = require('bcryptjs');
-const uuid = require('uuid');
 const { signToken } = require('../../utils/signToken');
 const db = new DynamoDB();
 
@@ -12,15 +11,14 @@ const TABLE_NAME = process.env.USERS_TABLE; // "Users" irne.
 const HASH_KEY = process.env.USER_ID_HASH_KEY; // "userId" irne.
 
 module.exports.signup = async (event, context) => {
-  let { email, password } = JSON.parse(event.body);
-  const USER_ID = uuid.v1();
+  let { email, password, userId } = JSON.parse(event.body);
 
   //create a new token
-  const token = signToken(USER_ID);
+  const token = signToken(userId);
 
   try {
     const params = {
-      [HASH_KEY]: USER_ID,
+      [HASH_KEY]: userId,
       email,
       password: await bcrypt.hash(password, 10),
     };
@@ -39,7 +37,6 @@ module.exports.signup = async (event, context) => {
       },
       body: JSON.stringify({
         loggedIn: true,
-        userId: USER_ID,
         token,
         message: 'User has been successfully signed up!',
       }),

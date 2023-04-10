@@ -1,10 +1,9 @@
 import Head from 'next/head';
-import Image from 'next/image';
-import React, { useState } from 'react';
+import React from 'react';
 import Login from '@/components/auth/Login';
+import Signup from '@/components/auth/Signup';
 import { useRecoilState } from 'recoil';
 import { loginOpenState } from '@/recoil/loginAtom';
-import Signup from '@/components/auth/Signup';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
