@@ -10,19 +10,19 @@ const HASH_KEY = process.env.IMAGE_NAME_HASH_KEY; // "imageName" will come.
 
 module.exports.writeImageData = async (event) => {
   //from s3 event trigger
-  const bucketName = event.Records[0].s3.bucket.name; //attendance-image-bucket
-  const key = event.Records[0].s3.object.key; // 050a43c9afbe70c61ed0.png
+  const bucketName = event.Records[0].s3.bucket.name; // "attendance-image-bucket"
+  const key = event.Records[0].s3.object.key; // e.g. "daily/050a43c9afbe70c61ed0.png"
 
   try {
     const params = {
       bucketName,
-      [HASH_KEY]: key, // imageName: '050a43c9afbe70c61ed0.png'
+      [HASH_KEY]: key, // e.g. "daily/050a43c9afbe70c61ed0.png"
     };
 
     await db.putItem({
       TableName: TABLE_NAME,
       Item: marshall(params),
-      ConditionExpression: 'attribute_not_exists(imageName)', // imageName
+      ConditionExpression: `attribute_not_exists(${HASH_KEY})`, // imageName
     });
 
     return {

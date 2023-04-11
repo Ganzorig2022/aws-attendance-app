@@ -106,6 +106,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setLoggedIn(true);
         setPersist(true);
         Cookies.set('token', response.data?.token);
+        Cookies.set('userId', response.data?.userId);
         router.push('/');
       }
     } catch (error: any) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 
 type Methods = 'put' | 'post' | 'patch' | 'delete' | 'get';
@@ -35,43 +35,6 @@ const useAxios = () => {
   };
 
   return { fetchData, error, loading };
-
-  //   const getPresignUrl = async (body: any) => {
-  //     try {
-  //       const res = await axios[method](url, body);
-  //       setResponse(res.data);
-  //     } catch (error: any) {
-  //       setError(error.message);
-  //     } finally {
-  //       setloading(false);
-  //     }
-  //   };
-
-  //   return response;
-
-  //   const uploadImage = async (
-  //     preSignUrl: string,
-  //     imageFile: any,
-  //     headerType: string
-  //   ) => {
-  //     // method => put request
-  //     // imageFile ==> e.target.files[0]
-  //     try {
-  //       const res = await axios[method](url, body);
-  //       setResponse(res.data);
-
-  //       await axios.put(preSignUrl, imageFile, {
-  //         headers: { 'Content-Type': headerType }, // "image/png"
-  //       });
-  //     } catch (error: any) {
-  //       setError(error.message);
-  //     } finally {
-  //       setloading(false);
-  //     }
-  //     return { response, error, loading };
-  //   };
-
-  //   return { getPresignUrl, uploadImage };
 };
 
 export default useAxios;

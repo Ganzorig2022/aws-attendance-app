@@ -6,15 +6,30 @@ const lambda = new AWS.Lambda();
 
 const rekognition = new AWS.Rekognition();
 
-const BUCKET_NAME = process.env.BUCKET_NAME; // 'attendance-image-bucket" from serverless.yml
+// from serverless.yml
+const BUCKET_NAME = process.env.BUCKET_NAME; // 'attendance-image-bucket"
+const REGION = process.env.REGION; // 'us-east-1"
 
+AWS.config.update({ region: REGION });
 exports.compareFace = async (event) => {
-  const { imageName } = event.Records[0].dynamodb.NewImage; // imageName --> { S: '9ed3c8bab227db272cbf.png' }
+  let imageName = null;
 
-  const userId = imageName.S.split('/')[1]; // "daily/9ed3c8bab227db272cbf.png" ==> "9ed3c8bab227db272cbf.png"
+  const newImage = event.Records[0].dynamodb.NewImage;
 
-  const originalImage = `original/${userId}`;
-  const dailyImage = `daily/${imageName.S}`;
+  if (newImage) {
+    imageName = event.Records[0].dynamodb.NewImage.imageName; // imageName --> { S: 'daily/9ed3c8bab227db272cbf.jpg' }
+  }
+
+  if (!newImage) {
+    imageName = event.Records[0].dynamodb.OldImage.imageName; // imageName --> { S: 'daily/9ed3c8bab227db272cbf.jpg' }
+  }
+
+  const userId = imageName.S.split('/')[1]; // "daily/9ed3c8bab227db272cbf.jpg" ====> "9ed3c8bab227db272cbf.jpg"
+
+  const originalImage = `original/${userId}`; // "original/9ed3c8bab227db272cbf.jpg"
+  const dailyImage = `daily/${userId}`; // "daily/9ed3c8bab227db272cbf.jpg"
+
+  console.log('BUCKET_NAME', BUCKET_NAME);
 
   try {
     const compareFaceParams = {
@@ -88,3 +103,37 @@ exports.compareFace = async (event) => {
 // Asia Pacific (Hong Kong)	ap-east-1 region is not available for REKOGNITION service...
 // https://docs.aws.amazon.com/general/latest/gr/rekognition.html
 //https://docs.aws.amazon.com/rekognition/latest/dg/faces-comparefaces.html
+
+// event.Records[0] RETURN RESULT...................
+/* {
+  eventID: '55f005a29af763d491ef3e4325575b67',
+  eventName: 'INSERT',
+  eventVersion: '1.1',
+  eventSource: 'aws:dynamodb',
+  awsRegion: 'us-east-1',
+  dynamodb: {
+    ApproximateCreationDateTime: 1681208071,
+    Keys: { imageName: [Object] },
+    NewImage: { bucketName: [Object], imageName: [Object] },
+    SequenceNumber: '100000000037511569521',
+    SizeBytes: 149,
+    StreamViewType: 'NEW_AND_OLD_IMAGES'
+  },
+  eventSourceARN: 'arn:aws:dynamodb:us-east-1:930277727374:table/Images/stream/2023-04-11T10:12:15.429'
+} */
+
+// // event.Records[0].dynamodb RETURN RESULT...................
+
+/* {
+  ApproximateCreationDateTime: 1681219564,
+  Keys: {
+    imageName: { S: 'original/a67ec4dc-6270-45c1-8215-10acc5466d3e.jpg' }
+  },
+  NewImage: {
+    bucketName: { S: 'attendance-image-bucket' },
+    imageName: { S: 'original/a67ec4dc-6270-45c1-8215-10acc5466d3e.jpg' }
+  },
+  SequenceNumber: '100000000039628750228',
+  SizeBytes: 149,
+  StreamViewType: 'NEW_AND_OLD_IMAGES'
+} */

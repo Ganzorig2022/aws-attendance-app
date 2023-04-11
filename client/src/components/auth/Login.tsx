@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { LoginView } from '@/recoil/loginAtom';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import checkUser from '@/middleware/checkUser';
 
 type Inputs = {
   email: string;
@@ -27,6 +28,15 @@ const Login = ({ toggleView }: Props) => {
   const onSubmit: SubmitHandler<Inputs> = async (inputs) => {
     const { email, password } = inputs;
 
+    // 1) MIDDLEWARE for checking if there is user or not...
+    const response = await checkUser(email);
+
+    if (response?.data.message === 'user not found') {
+      toast.error('You are not signed up. Please sign up instead!');
+      return;
+    }
+
+    // 2) If there is user, then sign in
     await signIn(email, password);
 
     if (error === 'Network Error') {

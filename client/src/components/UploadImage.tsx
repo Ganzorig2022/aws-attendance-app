@@ -32,22 +32,27 @@ const UploadImage = () => {
   const [cameraOpen, setCameraOpen] = useState(false);
 
   const bucketName = process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME!;
+
   // 1) Get image data from input
   const onGetFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
 
+    const imageExtension = e.target.files[0].name.split('.')[1]; // e.g. "jpg" or "png"
+
+    // if (imageExtension !== 'png')
+    //   return toast.error('Please only choose an image with ".png" extension! ');
+
     setSelectedFile(e.target.files[0] as any);
     setPreviewImage(URL.createObjectURL(e.target.files[0]));
 
-    const contentType = e.target.files[0].type; // "image/png" will return
+    const contentType = e.target.files[0].type; // "image/jpg" will return
 
-    setHeaderType(contentType); // "image/png"
+    setHeaderType(contentType); // "image/jpg"
 
-    const fileName = e.target.files[0].name; // "car.png" will return
+    const fileName = e.target.files[0].name; // "car.jpg" will return
 
     setFileData((prev) => ({ ...prev, fileName, contentType }));
   };
-  // console.log(selectedFile);
 
   // 2) Upload to AWS S3 - POST request
   const uploadOriginalImage = async () => {
@@ -63,7 +68,7 @@ const UploadImage = () => {
         bucketName,
         userId,
         fileExtension, // "jpg"
-        contentType, // "image/png"
+        contentType, // "image/jpg"
       };
 
       const response = await fetchData('post', endpoint, body);
@@ -74,7 +79,7 @@ const UploadImage = () => {
         // last step for image upload on AWS S3 by using pre-signed URL
 
         const result = await fetchData('put', preSignUrl, selectedFile, {
-          headers: { 'Content-Type': contentType }, // e.g. "image/png"
+          headers: { 'Content-Type': contentType }, // e.g. "image/jpg"
         });
 
         toast.success('Your image is successfully uploaded!');
@@ -89,16 +94,37 @@ const UploadImage = () => {
 
   // 2) Upload to AWS S3 - POST request
   const uploadDailyImage = async () => {
+    if (!userId) return toast.error('There is no user id.');
+
+    // 2.1) MIDDLEWARE for checking if there is original or not...
+    const endpoint = process.env.NEXT_PUBLIC_AWS_CHECK_ORIGINAL_IMAGE!;
+    const imageName = `${userId}.png`;
+
+    const url = `${endpoint}/${imageName}`;
+
+    const response = await fetchData('get', url);
+    console.log(response);
+
+    if (!response || !response?.data?.data)
+      return toast.error('Please upload an ORIGINAL image at first!');
+
+    // 2.2) If there is no ORIGINAL image uploaded, then upload daily image
     const { fileName, contentType } = fileData;
 
-    try {
-      if (fileName === '')
-        return alert('Please choose a file to upload first.');
+    if (fileName === '' || contentType === '')
+      return toast.error('Please choose a file to upload first.');
 
+    if (!selectedFile)
+      return toast.error('Please choose a file to upload first.');
+
+    const fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1); // "png" will return
+
+    if (!fileExtension)
+      return toast.error('Please choose a file to upload first.');
+
+    try {
       // AWS endpoint comes here...
       const endpoint = process.env.NEXT_PUBLIC_AWS_GET_DAILY_URL_ENDPOINT!;
-
-      const fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1); // "png" will return
 
       const body = {
         userId,
@@ -117,10 +143,6 @@ const UploadImage = () => {
         const result = await fetchData('put', preSignUrl, selectedFile, {
           headers: { 'Content-Type': contentType }, // "image/png"
         });
-        console.log('Upload result>>>>>', result?.statusText);
-        // await axios.put(preSignUrl, selectedFile, {
-        //   headers: { 'Content-Type': headerType }, // "image/png"
-        // });
 
         toast.success('Your image is successfully uploaded!');
 
@@ -182,7 +204,7 @@ const UploadImage = () => {
   //     }
   //   };
 
-  const toggle = (choice: string) => {
+  const toggleUploader = (choice: string) => {
     if (choice === 'camera')
       setImageOpen((prev) => ({ ...prev, camera: true, file: false }));
     if (choice === 'file')
@@ -195,13 +217,13 @@ const UploadImage = () => {
         <button
           className='btn'
           onClick={() => {
-            toggle('camera');
+            toggleUploader('camera');
             setCameraOpen(true);
           }}
         >
           Capture Image by Camera
         </button>
-        <button className='btn' onClick={() => toggle('file')}>
+        <button className='btn' onClick={() => toggleUploader('file')}>
           Upload Image File
         </button>
       </div>
@@ -212,8 +234,8 @@ const UploadImage = () => {
             className='file-input file-input-bordered file-input-accent w-full max-w-xs '
             onChange={onGetFiles}
             max='6'
-            accept='.jpg,.png,.jpeg'
-            multiple
+            accept='.png'
+            // multiple
             required
           />
         )}

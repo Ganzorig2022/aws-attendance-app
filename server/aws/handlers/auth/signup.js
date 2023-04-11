@@ -26,7 +26,7 @@ module.exports.signup = async (event, context) => {
     await db.putItem({
       TableName: TABLE_NAME,
       Item: marshall(params),
-      ConditionExpression: 'attribute_not_exists(userId)',
+      ConditionExpression: `attribute_not_exists(${HASH_KEY})`,
     });
 
     return {
@@ -53,17 +53,9 @@ module.exports.signup = async (event, context) => {
   }
 };
 
-// const http = require('http');
-// exports.handler = async (event) => {
-//     let dataString = '';
-//     const token = "...." // <- your JWT token
-
-//     const response = await new Promise((resolve, reject) => {
-//         const options = {
-//             "headers": {"Authorization": "Bearer " + token}
-//         }
-//         const req = http.get("url", options, function(res) { [...] }
-//     });
-
-//     return response;
-// };
+/* Get user input.
+Validate user input.
+Validate if the user already exists.
+Encrypt the user password.
+Create a user in our database.
+And finally, create a signed JWT token. */

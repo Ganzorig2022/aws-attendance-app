@@ -1,12 +1,6 @@
 import { Dispatch, SetStateAction, useCallback, useRef } from 'react';
 import Webcam from 'react-webcam';
 
-const videoConstraints = {
-  width: 400,
-  height: 400,
-  facingMode: 'user',
-};
-
 type Props = {
   setPreviewImage: Dispatch<SetStateAction<string>>;
   setCameraOpen: Dispatch<SetStateAction<boolean>>;
@@ -32,8 +26,8 @@ const WebcamCapture = ({
     fetch(imageSrc as any)
       .then((res) => res.blob)
       .then((blob) => {
-        const file = new File([blob as any], 'camera.jpg', {
-          type: 'image/jpg',
+        const file = new File([blob as any], 'camera.png', {
+          type: 'image/png',
         });
         setSelectedFile(file);
         const { name, type } = file;
@@ -50,9 +44,11 @@ const WebcamCapture = ({
           <Webcam
             audio={false}
             ref={webcamRef}
-            screenshotFormat='image/jpeg'
+            screenshotFormat='image/png'
             mirrored
-            videoConstraints={videoConstraints}
+            height={720}
+            width={1280}
+            // videoConstraints={videoConstraints}
           />
           <button
             className='btn btn-circle btn-outline absolute bottom-5 left-[50%] bg-black'

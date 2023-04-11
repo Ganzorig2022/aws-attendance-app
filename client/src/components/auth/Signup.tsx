@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { LoginView } from '@/recoil/loginAtom';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import checkUser from '@/middleware/checkUser';
 
 type Inputs = {
   email: string;
@@ -21,11 +22,21 @@ const Signup = ({ toggleView }: Props) => {
     handleSubmit,
     formState: { errors },
   } = useForm<Inputs>();
-  const { signUp, loggedIn, loading, error } = useAuth();
+  const { signUp, loading, error } = useAuth();
 
   const onSubmit: SubmitHandler<Inputs> = async (inputs) => {
     const { email, password } = inputs;
 
+    // 1) MIDDLEWARE for checking if there is user or not...
+
+    const response = await checkUser(email);
+
+    if (response?.data.message === 'user found') {
+      toast.error('You are already signed up. Please login instead!');
+      return;
+    }
+
+    // 2) If user is not there, then create a new user....
     await signUp(email, password);
 
     if (error === 'Network Error') {
@@ -106,42 +117,6 @@ const Signup = ({ toggleView }: Props) => {
         </div>
       </form>
     </div>
-    // <div className='bg-gray-500/75 rounded-lg p-10 '>
-    //   <div className='form-control flex flex-col items-center'>
-    //     <label className='label'>
-    //       <span className='label-text text-black font-bold text-3xl'>
-    //         Login
-    //       </span>
-    //     </label>
-    //     <div className='flex flex-col space-y-5 items-center justify-center mt-5'>
-    //       <label className='input-group'>
-    //         <span>Email </span>
-    //         <input
-    //           type='text'
-    //           placeholder='enter your email'
-    //           className='input input-bordered'
-    //           name='email'
-    //           value={inputs.email}
-    //           onChange={onChangeHandler}
-    //         />
-    //       </label>
-    //       <label className='input-group'>
-    //         <span>Password</span>
-    //         <input
-    //           type='text'
-    //           placeholder='enter your password'
-    //           className='input input-bordered'
-    //           name='password'
-    //           value={inputs.password}
-    //           onChange={onChangeHandler}
-    //         />
-    //       </label>
-    //     </div>
-    //     <button className='btn btn-primary mt-5 w-full' onClick={loginHandler}>
-    //       Login
-    //     </button>
-    //   </div>
-    // </div>
   );
 };
 

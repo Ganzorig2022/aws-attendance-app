@@ -5,7 +5,7 @@ const { S3 } = require('aws-sdk');
 const s3 = new S3();
 
 module.exports.getDailyURL = async (event) => {
-  const { userId, bucketName, fileExtension, contentType } = JSON.parse(
+  const { bucketName, fileExtension, userId, contentType } = JSON.parse(
     event.body
   ); //from axios.post requst...
 
