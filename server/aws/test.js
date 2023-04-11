@@ -1,32 +1,3 @@
-// const { calculateTime } = require('./utils/calculateTime');
+const currentDate = new Date().toJSON().slice(0, 10);
 
-// async function a() {
-//   const { subtractedTime, arriveDescription } = await calculateTime();
-
-//   console.log('subtractedTime>>>>>>>>', subtractedTime);
-//   console.log('arriveDescription>>>>>>>>', arriveDescription);
-// }
-
-// a();
-
-// const { randomImageName } = require('./utils/randomImageName');
-
-// const fileExtension = 'png';
-// const random = `${randomImageName(10)}.${fileExtension}`;
-
-// console.log(random); // 7f4a7081b700dfe9bf8c
-
-// const NodeCache = require('node-cache');
-// const myCache = new NodeCache();
-
-// const { setUserId } = require('./utils/asyncLocalStorage');
-
-// setUserId('123456');
-
-const { AsyncLocalStorage } = require('async_hooks');
-
-const asyncLocalStorage = new AsyncLocalStorage();
-
-asyncLocalStorage.run(new Map(), () => {
-  asyncLocalStorage.getStore().set('userId', '123456');
-});
+console.log(currentDate); //2023-04-11

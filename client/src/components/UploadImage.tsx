@@ -11,8 +11,8 @@ import { userIdState } from '@/recoil/userIdAtom';
 
 const UploadImage = () => {
   const router = useRouter();
-  // const userId = Cookies.get('userId');
-  const userId = useRecoilValue(userIdState);
+  const userId = Cookies.get('userId');
+  // const userId = useRecoilValue(userIdState);
   const { fetchData, error, loading } = useAxios();
   const [fileData, setFileData] = useState({
     fileName: '',
@@ -47,6 +47,7 @@ const UploadImage = () => {
 
     setFileData((prev) => ({ ...prev, fileName, contentType }));
   };
+  // console.log(selectedFile);
 
   // 2) Upload to AWS S3 - POST request
   const uploadOriginalImage = async () => {
@@ -73,12 +74,8 @@ const UploadImage = () => {
         // last step for image upload on AWS S3 by using pre-signed URL
 
         const result = await fetchData('put', preSignUrl, selectedFile, {
-          headers: { 'Content-Type': headerType }, // "image/png"
+          headers: { 'Content-Type': contentType }, // e.g. "image/png"
         });
-        console.log('Upload result>>>>>', result?.statusText);
-        // await axios.put(preSignUrl, selectedFile, {
-        //   headers: { 'Content-Type': headerType }, // "image/png"
-        // });
 
         toast.success('Your image is successfully uploaded!');
 
@@ -89,6 +86,7 @@ const UploadImage = () => {
       toast.error(error.message);
     }
   };
+
   // 2) Upload to AWS S3 - POST request
   const uploadDailyImage = async () => {
     const { fileName, contentType } = fileData;
@@ -103,6 +101,7 @@ const UploadImage = () => {
       const fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1); // "png" will return
 
       const body = {
+        userId,
         bucketName,
         fileExtension,
         contentType,
@@ -116,7 +115,7 @@ const UploadImage = () => {
         // last step for image upload on AWS S3 by using pre-signed URL
 
         const result = await fetchData('put', preSignUrl, selectedFile, {
-          headers: { 'Content-Type': headerType }, // "image/png"
+          headers: { 'Content-Type': contentType }, // "image/png"
         });
         console.log('Upload result>>>>>', result?.statusText);
         // await axios.put(preSignUrl, selectedFile, {

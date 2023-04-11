@@ -9,10 +9,11 @@ const rekognition = new AWS.Rekognition();
 const BUCKET_NAME = process.env.BUCKET_NAME; // 'attendance-image-bucket" from serverless.yml
 
 exports.compareFace = async (event) => {
-  const { imageName } = event.Records[0].dynamodb.NewImage;
-  // imageName --> { S: '9ed3c8bab227db272cbf.png' }
+  const { imageName } = event.Records[0].dynamodb.NewImage; // imageName --> { S: '9ed3c8bab227db272cbf.png' }
 
-  const originalImage = 'original/original.jpg'; // DYNAMIC SOLUTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  const userId = imageName.S.split('/')[1]; // "daily/9ed3c8bab227db272cbf.png" ==> "9ed3c8bab227db272cbf.png"
+
+  const originalImage = `original/${userId}`;
   const dailyImage = `daily/${imageName.S}`;
 
   try {
@@ -57,7 +58,7 @@ exports.compareFace = async (event) => {
         const invokeParams = {
           FunctionName: `${arnPrefix}:aws-attendance-app-dev-createAttendance`,
           InvocationType: 'Event',
-          Payload: JSON.stringify({ similarity: 'identical' }),
+          Payload: JSON.stringify({ similarity: 'identical', userId }),
         };
         await lambda.invoke(invokeParams).promise();
 

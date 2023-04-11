@@ -32,13 +32,13 @@ const WebcamCapture = ({
     fetch(imageSrc as any)
       .then((res) => res.blob)
       .then((blob) => {
-        const file = new File([blob as any], 'camera.png', {
-          type: 'image/png',
+        const file = new File([blob as any], 'camera.jpg', {
+          type: 'image/jpg',
         });
         setSelectedFile(file);
         const { name, type } = file;
 
-        setFileData({ name, contentType: type });
+        setFileData({ fileName: name, contentType: type });
         setCameraOpen(false);
       });
   }, [webcamRef, setPreviewImage]);
