@@ -11,6 +11,7 @@ const BUCKET_NAME = process.env.BUCKET_NAME; // 'attendance-image-bucket"
 const REGION = process.env.REGION; // 'us-east-1"
 
 AWS.config.update({ region: REGION });
+
 exports.compareFace = async (event) => {
   let imageName = null;
 
@@ -28,8 +29,6 @@ exports.compareFace = async (event) => {
 
   const originalImage = `original/${userId}`; // "original/9ed3c8bab227db272cbf.jpg"
   const dailyImage = `daily/${userId}`; // "daily/9ed3c8bab227db272cbf.jpg"
-
-  console.log('BUCKET_NAME', BUCKET_NAME);
 
   try {
     const compareFaceParams = {
@@ -49,7 +48,7 @@ exports.compareFace = async (event) => {
     };
 
     const result = await rekognition.compareFaces(compareFaceParams).promise();
-    // result will return below
+    // result will return below if face matches
     /*
     {
       SourceImageFace: {
@@ -64,35 +63,52 @@ exports.compareFace = async (event) => {
     FaceMatches: [ { Similarity: 99.98960876464844, Face: [Object] } ],
     UnmatchedFaces: [] } */
 
-    const faceSimilarity = result.FaceMatches[0].Similarity; // e.g 99.98960 will return
+    if (!result.FaceMatches) {
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': '*',
+        },
+        body: JSON.stringify({
+          message: 'Result between two faces are NOT IDENTICAL.',
+        }),
+      };
+    }
 
-    if (faceSimilarity > 70) {
-      try {
-        const arnPrefix = 'arn:aws:lambda:us-east-1:930277727374:function';
+    // const matchFound = result.FaceMatches[0]; // e.g 99.98960 will return
 
-        const invokeParams = {
-          FunctionName: `${arnPrefix}:aws-attendance-app-dev-createAttendance`,
-          InvocationType: 'Event',
-          Payload: JSON.stringify({ similarity: 'identical', userId }),
-        };
-        await lambda.invoke(invokeParams).promise();
+    try {
+      const arnPrefix = 'arn:aws:lambda:us-east-1:930277727374:function';
 
-        return {
-          statusCode: 200,
-          body: JSON.stringify({
-            message: 'Result between two faces are IDENTICAL.',
-          }),
-        };
-      } catch (error) {
-        console.log('invokeLambda :: Error: ' + error);
-      }
-    } else {
-      console.log('Result between two faces are NOT identical');
+      const invokeParams = {
+        FunctionName: `${arnPrefix}:aws-attendance-app-dev-createAttendance`,
+        InvocationType: 'Event',
+        Payload: JSON.stringify({ similarity: 'identical', userId }),
+      };
+      await lambda.invoke(invokeParams).promise();
+
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': '*',
+        },
+        body: JSON.stringify({
+          message: 'Result between two faces are IDENTICAL.',
+        }),
+      };
+    } catch (error) {
+      console.log('invokeLambda :: Error: ' + error);
     }
   } catch (error) {
     console.log('Error with REKOGNITION>>>>>>>>', error);
     return {
       statusCode: 400,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+      },
       body: JSON.stringify({
         message: 'REKOGNITION FAILED',
       }),

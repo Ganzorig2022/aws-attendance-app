@@ -8,12 +8,14 @@ import WebcamCapture from './Camera';
 import useAxios from '@/hooks/useAxios';
 import { useRecoilValue } from 'recoil';
 import { userIdState } from '@/recoil/userIdAtom';
+import useFetch from '@/hooks/useFetch';
 
 const UploadImage = () => {
   const router = useRouter();
   const userId = Cookies.get('userId');
   // const userId = useRecoilValue(userIdState);
   const { fetchData, error, loading } = useAxios();
+  const { fetchAPI } = useFetch();
   const [fileData, setFileData] = useState({
     fileName: '',
     contentType: '',
@@ -37,9 +39,9 @@ const UploadImage = () => {
   const onGetFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
 
-    const imageExtension = e.target.files[0].name.split('.')[1]; // e.g. "jpg" or "png"
+    // const imageExtension = e.target.files[0].name.split('.')[1]; // e.g. "jpg" or "png"
 
-    // if (imageExtension !== 'png')
+    // if (imageExtension !== 'png' || imageExtension !== 'jpg')
     //   return toast.error('Please only choose an image with ".png" extension! ');
 
     setSelectedFile(e.target.files[0] as any);
@@ -56,6 +58,8 @@ const UploadImage = () => {
 
   // 2) Upload to AWS S3 - POST request
   const uploadOriginalImage = async () => {
+    if (!userId) return toast.error('There is no user id.');
+
     const { fileName, contentType } = fileData;
 
     try {
@@ -71,20 +75,28 @@ const UploadImage = () => {
         contentType, // "image/jpg"
       };
 
-      const response = await fetchData('post', endpoint, body);
+      // const response = await fetchData('post', endpoint, body);
+      const response = await fetchAPI('post', endpoint, body);
 
-      const preSignUrl = response?.data.preSignUrl;
+      console.log(response);
+
+      const preSignUrl = response?.preSignUrl;
 
       if (preSignUrl) {
         // last step for image upload on AWS S3 by using pre-signed URL
 
-        const result = await fetchData('put', preSignUrl, selectedFile, {
-          headers: { 'Content-Type': contentType }, // e.g. "image/jpg"
-        });
+        const result = await fetchAPI(
+          'put',
+          preSignUrl,
+          selectedFile,
+          { 'Content-Type': contentType } // e.g. "image/jpg"
+        );
+
+        console.log(result);
 
         toast.success('Your image is successfully uploaded!');
 
-        router.push('/compare');
+        // router.push('/compare');
       }
     } catch (error: any) {
       console.log('<<<<<<ERROR FROM BACKEND>>>>:', error.message);
@@ -96,17 +108,18 @@ const UploadImage = () => {
   const uploadDailyImage = async () => {
     if (!userId) return toast.error('There is no user id.');
 
-    // 2.1) MIDDLEWARE for checking if there is original or not...
+    // 2.1) MIDDLEWARE for checking if there is ORIGINAL or not...
     const endpoint = process.env.NEXT_PUBLIC_AWS_CHECK_ORIGINAL_IMAGE!;
-    const imageName = `${userId}.png`;
+    const imageName = `${userId}.jpg`; // extension,,,,,,DYNAMIC SOLUTION!!!!!!!!!!!!!!!!!!!!
 
     const url = `${endpoint}/${imageName}`;
 
     const response = await fetchData('get', url);
-    console.log(response);
 
-    if (!response || !response?.data?.data)
-      return toast.error('Please upload an ORIGINAL image at first!');
+    if (response?.data.message === 'Data not found') {
+      toast.error('Please upload an ORIGINAL image at first!');
+      return;
+    }
 
     // 2.2) If there is no ORIGINAL image uploaded, then upload daily image
     const { fileName, contentType } = fileData;
@@ -146,7 +159,7 @@ const UploadImage = () => {
 
         toast.success('Your image is successfully uploaded!');
 
-        router.push('/compare');
+        // router.push('/compare');
       }
     } catch (error: any) {
       console.log('<<<<<<ERROR FROM BACKEND>>>>:', error.message);
@@ -234,7 +247,7 @@ const UploadImage = () => {
             className='file-input file-input-bordered file-input-accent w-full max-w-xs '
             onChange={onGetFiles}
             max='6'
-            accept='.png'
+            accept='image/*'
             // multiple
             required
           />

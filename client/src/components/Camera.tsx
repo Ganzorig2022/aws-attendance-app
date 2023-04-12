@@ -26,8 +26,8 @@ const WebcamCapture = ({
     fetch(imageSrc as any)
       .then((res) => res.blob)
       .then((blob) => {
-        const file = new File([blob as any], 'camera.png', {
-          type: 'image/png',
+        const file = new File([blob as any], 'camera.jpg', {
+          type: 'image/jpg',
         });
         setSelectedFile(file);
         const { name, type } = file;
@@ -44,10 +44,10 @@ const WebcamCapture = ({
           <Webcam
             audio={false}
             ref={webcamRef}
-            screenshotFormat='image/png'
+            screenshotFormat='image/jpeg'
             mirrored
-            height={720}
-            width={1280}
+            height={400}
+            width={400}
             // videoConstraints={videoConstraints}
           />
           <button

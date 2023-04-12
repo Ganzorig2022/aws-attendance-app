@@ -13,12 +13,24 @@ module.exports.checkOriginalImage = async (event) => {
   };
 
   try {
-    const { Item } = await db.getItem({
+    const result = await db.getItem({
       TableName: TABLE_NAME,
       Key: marshall(params),
     });
 
-    console.log('ITEM', Item);
+    if (!result.Item) {
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': '*',
+        },
+        body: JSON.stringify({
+          message: 'Data not found',
+          found: false,
+        }),
+      };
+    }
 
     // Item will return
     /*   {
@@ -33,8 +45,8 @@ module.exports.checkOriginalImage = async (event) => {
         'Access-Control-Allow-Headers': '*',
       },
       body: JSON.stringify({
-        message: 'Data has been successfully arrived',
-        data: unmarshall(Item),
+        message: 'Data found',
+        found: true,
       }),
     };
   } catch (error) {

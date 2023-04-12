@@ -32,7 +32,6 @@ provider:
             - dynamodb:DeleteItem
             - lambda:InvokeFunction
             - rekognition:CompareFaces
-            # - rekognition:DetectText
           Resource: '*'
 
   environment:

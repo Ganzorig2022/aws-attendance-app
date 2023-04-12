@@ -8,17 +8,18 @@ const db = new DynamoDB();
 const TABLE_NAME = process.env.ATTENDANCE_TABLE;
 
 module.exports.createAttendance = async (event) => {
-  const { similarity, userId } = event; // "identical" will return certainly.
+  const { userId } = event;
 
   const { subtractedTime, arriveDescription } = await calculateTime();
 
   const currentDate = new Date().toJSON().slice(0, 10); // e.g. "2023-04-11"
   const currentHour = new Date().getHours(); // e.g. "11"
 
+  const userID = userId.split('.')[1]; // "9ed3c8bab227db272cbf.jpg" ====> "9ed3c8bab227db272cbf"
+
   try {
     const params = {
-      similarity,
-      userId,
+      userId: userID,
       createdAt: Date.now(), // e.g. 1680263701461
       arrivedAt: new Date(Date.now()).toGMTString(), // e.g. 'Fri, 31 Mar 2023 05:40:13 GMT'
       lateMinute: subtractedTime.toFixed(1), // e.g 130.2 etc.
