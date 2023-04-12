@@ -3,32 +3,28 @@ import { useAuth } from '@/hooks/useAuth';
 import { userTableState, userTableType } from '@/recoil/userTableAtom';
 import { useRecoilValue } from 'recoil';
 import Header from '@/components/Header';
-import { useRouter } from 'next/router';
+import GetAllAttendance from '@/components/buttons/GetAllAttendance';
+import { ToastContainer } from 'react-toastify';
 
 const Attendance = () => {
-  const router = useRouter();
-  const { persist } = useAuth();
+  const { loggedIn } = useAuth();
   const userTable = useRecoilValue(userTableState);
 
-  if (!persist) return null;
+  if (!loggedIn) return null;
 
   if (userTable.length === 0)
     return (
       <>
+        <Header />
         <div className='flex items-center justify-center text-red-500 text-3xl font-bold'>
           NO USER DATA
         </div>
-        <button
-          className='rounded bg-[#E50914] py-3 font-semibold px-3 text-white'
-          onClick={() => router.push('/')}
-          type='submit'
-        >
-          Go to home page
-        </button>
+        <div className='flex flex-col items-center justify-center mt-10'>
+          <GetAllAttendance />
+          <ToastContainer position='top-center' />
+        </div>
       </>
     );
-
-  // console.log(userTable);
 
   return (
     <>

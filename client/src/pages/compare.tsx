@@ -9,7 +9,7 @@ const Compare = () => {
   return (
     <div>
       <Header />
-      <WriteAttendance />
+      {/* <WriteAttendance /> */}
     </div>
   );
 };

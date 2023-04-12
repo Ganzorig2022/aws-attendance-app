@@ -5,9 +5,9 @@ import Header from '@/components/Header';
 import UploadImage from '@/components/UploadImage';
 
 export default function Home() {
-  const { persist } = useAuth();
+  const { loggedIn } = useAuth();
 
-  if (!persist) return null;
+  if (!loggedIn) return null;
 
   return (
     <>

@@ -17,8 +17,7 @@ module.exports.getListBucket = async (event) => {
     return {
       statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
       },
       body: JSON.stringify({
         message: 'List Bucket is successful.',
@@ -30,8 +29,7 @@ module.exports.getListBucket = async (event) => {
     return {
       statusCode: 400, //Bad request
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
       },
       body: JSON.stringify({
         message: 'Bad request.',

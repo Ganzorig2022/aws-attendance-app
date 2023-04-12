@@ -34,8 +34,7 @@ module.exports.login = async (event) => {
         return {
           statusCode: 200, // OK
           headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': '*',
+            'Access-Control-Allow-Origin': 'http://localhost:3000',
           },
           body: JSON.stringify({
             userId,
@@ -51,8 +50,7 @@ module.exports.login = async (event) => {
           body: JSON.stringify({
             loggedIn: false,
             headers: {
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Headers': '*',
+              'Access-Control-Allow-Origin': 'http://localhost:3000',
             },
             message: 'Login, failed. Password does not match!!',
           }),

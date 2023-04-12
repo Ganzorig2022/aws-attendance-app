@@ -1,12 +1,11 @@
 'use strict';
 
 const { DynamoDB } = require('@aws-sdk/client-dynamodb');
-const { unmarshall } = require('@aws-sdk/util-dynamodb');
 const db = new DynamoDB();
 
 const TABLE_NAME = process.env.ATTENDANCE_TABLE;
 
-module.exports.getOwnAttendance = async (event) => {
+module.exports.getAllAttendance = async (event) => {
   try {
     const { Items } = await db.scan({
       TableName: TABLE_NAME,
@@ -15,8 +14,7 @@ module.exports.getOwnAttendance = async (event) => {
     return {
       statusCode: 200, // OK
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
       },
       body: JSON.stringify({
         data: Items,
@@ -28,8 +26,7 @@ module.exports.getOwnAttendance = async (event) => {
     return {
       statusCode: 400, // Bad request
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
       },
       body: JSON.stringify({
         message: 'Bad request.',

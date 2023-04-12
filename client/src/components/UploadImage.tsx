@@ -8,14 +8,17 @@ import WebcamCapture from './Camera';
 import useAxios from '@/hooks/useAxios';
 import { useRecoilValue } from 'recoil';
 import { userIdState } from '@/recoil/userIdAtom';
-import useFetch from '@/hooks/useFetch';
+import checkImage from '@/middleware/checkImage';
+import checkAttendance from '@/middleware/checkAttendance';
+import { isImage } from '@/utils/checkFileType';
+import checkToken from '@/middleware/checkToken';
 
 const UploadImage = () => {
   const router = useRouter();
   const userId = Cookies.get('userId');
+  const token = Cookies.get('token');
   // const userId = useRecoilValue(userIdState);
   const { fetchData, error, loading } = useAxios();
-  const { fetchAPI } = useFetch();
   const [fileData, setFileData] = useState({
     fileName: '',
     contentType: '',
@@ -39,19 +42,21 @@ const UploadImage = () => {
   const onGetFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
 
-    // const imageExtension = e.target.files[0].name.split('.')[1]; // e.g. "jpg" or "png"
+    const fileName = e.target.files[0].name; // "car.jpg" will return
 
-    // if (imageExtension !== 'png' || imageExtension !== 'jpg')
-    //   return toast.error('Please only choose an image with ".png" extension! ');
+    // 1.1) MIDDLEWARE for check if input file type is image or not...
+    const result = isImage(fileName);
 
+    if (!result)
+      return toast.error('Please only choose an image with ".png" extension! ');
+
+    // 1.2) If passes above middleware, then proceed below...
     setSelectedFile(e.target.files[0] as any);
     setPreviewImage(URL.createObjectURL(e.target.files[0]));
 
     const contentType = e.target.files[0].type; // "image/jpg" will return
 
     setHeaderType(contentType); // "image/jpg"
-
-    const fileName = e.target.files[0].name; // "car.jpg" will return
 
     setFileData((prev) => ({ ...prev, fileName, contentType }));
   };
@@ -60,6 +65,15 @@ const UploadImage = () => {
   const uploadOriginalImage = async () => {
     if (!userId) return toast.error('There is no user id.');
 
+    // 2.1) MIDDLEWARE for checking if token is valid or invalid...
+    const isValidToken = await checkToken(token!);
+
+    if (isValidToken.data.message === 'invalid token')
+      return toast.error(
+        'Invalid token. You are not authorized to upload an image.'
+      );
+
+    // 2.2)  If pass all middlewares above, then proceed below operation...
     const { fileName, contentType } = fileData;
 
     try {
@@ -75,24 +89,16 @@ const UploadImage = () => {
         contentType, // "image/jpg"
       };
 
-      // const response = await fetchData('post', endpoint, body);
-      const response = await fetchAPI('post', endpoint, body);
+      const response = await fetchData('post', endpoint, body);
 
-      console.log(response);
-
-      const preSignUrl = response?.preSignUrl;
+      const preSignUrl = response?.data.preSignUrl;
 
       if (preSignUrl) {
         // last step for image upload on AWS S3 by using pre-signed URL
 
-        const result = await fetchAPI(
-          'put',
-          preSignUrl,
-          selectedFile,
-          { 'Content-Type': contentType } // e.g. "image/jpg"
-        );
-
-        console.log(result);
+        const result = await fetchData('put', preSignUrl, selectedFile, {
+          headers: { 'Content-Type': contentType }, // "image/png"
+        });
 
         toast.success('Your image is successfully uploaded!');
 
@@ -109,19 +115,22 @@ const UploadImage = () => {
     if (!userId) return toast.error('There is no user id.');
 
     // 2.1) MIDDLEWARE for checking if there is ORIGINAL or not...
-    const endpoint = process.env.NEXT_PUBLIC_AWS_CHECK_ORIGINAL_IMAGE!;
-    const imageName = `${userId}.jpg`; // extension,,,,,,DYNAMIC SOLUTION!!!!!!!!!!!!!!!!!!!!
+    const response = await checkImage('original', userId);
 
-    const url = `${endpoint}/${imageName}`;
-
-    const response = await fetchData('get', url);
-
-    if (response?.data.message === 'Data not found') {
+    if (response?.data.message === 'Image not found') {
       toast.error('Please upload an ORIGINAL image at first!');
       return;
     }
 
-    // 2.2) If there is no ORIGINAL image uploaded, then upload daily image
+    // 2.2) MIDDLEWARE for checking if user already created attendance table or not...
+    const res = await checkAttendance(userId);
+
+    if (res?.data.message === 'Attendance found') {
+      toast.error("You already uploaded your today's daily image!");
+      return;
+    }
+
+    // 2.3) If pass all middlewares above, then proceed below operation...
     const { fileName, contentType } = fileData;
 
     if (fileName === '' || contentType === '')
@@ -159,7 +168,7 @@ const UploadImage = () => {
 
         toast.success('Your image is successfully uploaded!');
 
-        // router.push('/compare');
+        router.push('/attendance');
       }
     } catch (error: any) {
       console.log('<<<<<<ERROR FROM BACKEND>>>>:', error.message);
@@ -236,11 +245,17 @@ const UploadImage = () => {
         >
           Capture Image by Camera
         </button>
-        <button className='btn' onClick={() => toggleUploader('file')}>
+        <button
+          className='btn'
+          onClick={() => {
+            toggleUploader('file');
+            setCameraOpen(false);
+          }}
+        >
           Upload Image File
         </button>
       </div>
-      <div className='flex flex-col items-center justify-center h-screen space-y-5'>
+      <div className='flex flex-col items-center justify-center space-y-5 mt-10'>
         {imageOpen.file && (
           <input
             type='file'

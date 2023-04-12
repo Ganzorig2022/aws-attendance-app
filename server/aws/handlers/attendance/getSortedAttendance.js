@@ -30,8 +30,7 @@ module.exports.getSortedAttendance = async (event) => {
     return {
       statusCode: 200, // OK
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
       },
       body: JSON.stringify({
         data: Items,
@@ -43,8 +42,7 @@ module.exports.getSortedAttendance = async (event) => {
     return {
       statusCode: 400, // Bad request
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
       },
       body: JSON.stringify({
         message: 'Bad request.',

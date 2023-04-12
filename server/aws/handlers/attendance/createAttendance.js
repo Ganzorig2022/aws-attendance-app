@@ -7,21 +7,24 @@ const db = new DynamoDB();
 
 const TABLE_NAME = process.env.ATTENDANCE_TABLE;
 
+// this function will be worked by compareFace function using invoke automatically...
 module.exports.createAttendance = async (event) => {
   const { userId } = event;
 
   const { subtractedTime, arriveDescription } = await calculateTime();
 
-  const currentDate = new Date().toJSON().slice(0, 10); // e.g. "2023-04-11"
-  const currentHour = new Date().getHours(); // e.g. "11"
+  const createdDate = new Date().toJSON().slice(0, 10); // e.g. "2023-04-11"
+  const currentHour = new Date().getHours().toString(); // e.g. "15"
+  const currentMin = new Date().getMinutes().toString(); // e.g. "30"
+  const arrivedTime = currentHour + ':' + currentMin; // e.g. "15:30"
 
-  const userID = userId.split('.')[1]; // "9ed3c8bab227db272cbf.jpg" ====> "9ed3c8bab227db272cbf"
+  const userID = userId.split('.')[0]; // "9ed3c8bab227db272cbf.jpg" ====> "9ed3c8bab227db272cbf"
 
   try {
     const params = {
       userId: userID,
-      createdAt: Date.now(), // e.g. 1680263701461
-      arrivedAt: new Date(Date.now()).toGMTString(), // e.g. 'Fri, 31 Mar 2023 05:40:13 GMT'
+      createdDate,
+      // arrivedTime,
       lateMinute: subtractedTime.toFixed(1), // e.g 130.2 etc.
       description: arriveDescription, // eg. Цагтаа ирсэн...
     };
@@ -32,8 +35,7 @@ module.exports.createAttendance = async (event) => {
     return {
       statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
       },
       body: JSON.stringify({
         message: 'Attendance data has been successfully created!',
@@ -44,8 +46,7 @@ module.exports.createAttendance = async (event) => {
     return {
       statusCode: 400, //Bad request
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
       },
       body: JSON.stringify({
         message: 'Bad request.',

@@ -1,39 +1,36 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+import axios from 'axios';
+import Cookies from 'js-cookie';
 import { useRouter } from 'next/router';
-import React, {
+import {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
 } from 'react';
-import axios from 'axios';
-import Cookies from 'js-cookie';
-import { useRecoilState, useSetRecoilState } from 'recoil';
 import { userIdState } from '@/recoil/userIdAtom';
+import { useSetRecoilState } from 'recoil';
 import { v4 as uuidv4 } from 'uuid';
+import checkToken from '@/middleware/checkToken';
 
 //Creating Auth Context
 interface AuthType {
-  user: User | null;
   signUp: (email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
   loggedIn: boolean;
-  persist: boolean;
   error: string;
 }
 
 const AuthContext = createContext<AuthType>({
-  user: null,
   signUp: async () => {},
   signIn: async () => {},
   logout: async () => {},
   loading: false,
   loggedIn: false,
-  persist: false,
   error: '',
 });
 
@@ -44,24 +41,32 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<User | null>(null); //User type from firebase;
   const [loggedIn, setLoggedIn] = useState(false);
-  const [persist, setPersist] = useState(false);
   const setUserId = useSetRecoilState(userIdState);
   const [error, setError] = useState('');
-  const token = Cookies.get('token');
 
+  // keep logged in when refresh
   useEffect(() => {
-    if (token) {
-      setPersist(true);
+    const token = Cookies.get('token');
+
+    (async () => {
+      const isValidToken = await checkToken(token!);
+      if (isValidToken.data.message === 'invalid token') {
+        setLoggedIn(false);
+        router.push('/auth');
+        console.log('<<<<<< USER LOGGED OUT>>>>>>');
+      }
+      setLoggedIn(true);
       console.log('<<<<<<USER STILL SIGNED IN>>>>>>');
-    }
-    if (!token) {
-      setPersist(false);
-      router.push('/auth');
-      console.log('<<<<<< USER LOGGED OUT>>>>>>');
-    }
-  }, []);
+    })();
+
+    // if (token) {
+    // }
+    // if (!token) {
+    //   setLoggedIn(false);
+    //   router.push('/auth');
+    // }
+  }, [router]);
 
   // 1) Create user
   const signUp = async (email: string, password: string) => {
@@ -69,12 +74,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const endpoint = process.env.NEXT_PUBLIC_AWS_SIGNUP_ENDPOINT!;
     const userId = uuidv4();
 
+    setLoading(true);
     setUserId(userId);
     Cookies.set('userId', userId);
 
     try {
-      setLoading(true);
-
       const response = await axios.post(endpoint, { email, password, userId });
 
       if (response.data?.loggedIn) {
@@ -91,20 +95,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // 2) Sign In user
+  // 2) Login user
   const signIn = async (email: string, password: string) => {
     // AWS API gateway URL needs here....
     const endpoint = process.env.NEXT_PUBLIC_AWS_LOGIN_ENDPOINT!;
 
+    setLoading(true);
     try {
-      setLoading(true);
-
       const response = await axios.post(endpoint, { email, password });
 
       if (response.data?.loggedIn) {
         setLoading(false);
         setLoggedIn(true);
-        setPersist(true);
         Cookies.set('token', response.data?.token);
         Cookies.set('userId', response.data?.userId);
         router.push('/');
@@ -117,17 +119,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
   // 3) Log out user
-  const logout = async () => {
-    localStorage.removeItem('recoil-persist');
+  // const logout = async () => {
+  //   localStorage.clear();
+  //   Cookies.remove('token');
+  //   Cookies.remove('userId');
+  //   setLoggedIn(false);
+  //   router.push('/auth');
+  // };
+
+  const logout = useCallback(async () => {
+    localStorage.clear();
     Cookies.remove('token');
     Cookies.remove('userId');
     setLoggedIn(false);
     router.push('/auth');
-  };
+  }, [router]);
 
   const memoedValue = useMemo(
-    () => ({ user, signUp, signIn, loading, logout, loggedIn, persist, error }),
-    [user, loading, loggedIn, signIn, persist, logout, error]
+    () => ({ signUp, signIn, loading, logout, loggedIn, error }),
+    [loading, loggedIn, signIn, logout, error, signUp]
   );
 
   return (

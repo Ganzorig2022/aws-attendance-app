@@ -23,17 +23,17 @@ const WebcamCapture = ({
 
     setPreviewImage(imageSrc);
 
-    fetch(imageSrc as any)
-      .then((res) => res.blob)
+    fetch(imageSrc)
+      .then((res) => res.blob())
       .then((blob) => {
-        const file = new File([blob as any], 'camera.jpg', {
+        const file = new File([blob], 'camera.jpg', {
           type: 'image/jpg',
         });
+
         setSelectedFile(file);
         const { name, type } = file;
 
         setFileData({ fileName: name, contentType: type });
-        setCameraOpen(false);
       });
   }, [webcamRef, setPreviewImage]);
 
@@ -48,6 +48,7 @@ const WebcamCapture = ({
             mirrored
             height={400}
             width={400}
+            screenshotQuality={1}
             // videoConstraints={videoConstraints}
           />
           <button

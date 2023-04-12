@@ -17,8 +17,6 @@ const useAxios = () => {
     body?: any,
     headers?: any
   ) => {
-    // console.log(method, url, body, headers);
-
     try {
       setloading(true);
 

@@ -2,6 +2,7 @@ service: aws-attendance-app
 frameworkVersion: '3'
 
 custom:
+  origin: http://localhost:3000
   region: us-east-1
   table:
     users: Users
@@ -51,14 +52,20 @@ functions:
       - http:
           path: auth/signup
           method: post
-          cors: true
+          cors:
+            origin: ${self:custom.origin}
+            headers:
+              - '*'
   login:
     handler: handlers/auth/login.login
     events:
       - http:
           path: auth/login
           method: post
-          cors: true
+          cors:
+            origin: ${self:custom.origin}
+            headers:
+              - '*'
   # IMAGE UPLOADER FUNCTIONS
   getOriginalURL:
     handler: handlers/upload/getOriginalURL.getOriginalURL
@@ -66,14 +73,20 @@ functions:
       - http:
           path: upload/original
           method: post
-          cors: true
+          cors:
+            origin: ${self:custom.origin}
+            headers:
+              - '*'
   getDailyURL:
     handler: handlers/upload/getDailyURL.getDailyURL
     events:
       - http:
           path: upload/daily
           method: post
-          cors: true
+          cors:
+            origin: ${self:custom.origin}
+            headers:
+              - '*'
 
   getListBucket:
     handler: handlers/upload/getListBucket.getListBucket
@@ -81,7 +94,10 @@ functions:
       - http:
           path: image
           method: get
-          cors: true
+          cors:
+            origin: ${self:custom.origin}
+            headers:
+              - '*'
 
   deleteImage:
     handler: handlers/upload/deleteImage.deleteImage
@@ -89,7 +105,10 @@ functions:
       - http:
           path: image
           method: delete
-          cors: true
+          cors:
+            origin: ${self:custom.origin}
+            headers:
+              - '*'
 
   # this function will ONLY be triggered by event trigger when image is uploaded on AWS S3
   writeImageData:
@@ -117,37 +136,73 @@ functions:
       - http:
           path: attendance
           method: post
-          cors: true
-  # getOwnAttendance:
-  #   handler: handlers/getOwnAttendance.getOwnAttendance
-  #   events:
-  #     - http:
-  #         path: attendance/list
-  #         method: get
-  #         cors: true
+          cors:
+            origin: ${self:custom.origin}
+            headers:
+              - '*'
+  getAllAttendance:
+    handler: handlers/getAllAttendance.getAllAttendance
+    events:
+      - http:
+          path: attendance/list
+          method: get
+          cors:
+            origin: ${self:custom.origin}
+            headers:
+              - '*'
+
   # getSortedAttendance:
   #   handler: handlers/getSortedAttendance.getSortedAttendance
   #   events:
   #     - http:
   #         path: attendance/sort
   #         method: get
-  #         cors: true
+  #         cors:
+  #           origin: ${self:custom.origin}
+  #           headers:
+  #             - '*'::
 
   # MIDDLWARE FUNCTIONS
-  checkOriginalImage:
-    handler: handlers/middleware/checkOriginal.checkOriginalImage
+  checkImage:
+    handler: handlers/middleware/checkImage.checkImage
     events:
       - http:
-          path: image/{userId}
+          path: image/{query}
           method: get
-          cors: true
+          cors:
+            origin: ${self:custom.origin}
+            headers:
+              - '*'
+  checkAttendance:
+    handler: handlers/middleware/checkAttendance.checkAttendance
+    events:
+      - http:
+          path: attendance/{userId}
+          method: get
+          cors:
+            origin: ${self:custom.origin}
+            headers:
+              - '*'
   checkSignUpUser:
     handler: handlers/middleware/checkSignUpUser.checkSignUpUser
     events:
       - http:
           path: user/{email}
           method: get
-          cors: true
+          cors:
+            origin: ${self:custom.origin}
+            headers:
+              - '*'
+  checkToken:
+    handler: handlers/middleware/checkToken.checkToken
+    events:
+      - http:
+          path: token/{token}
+          method: get
+          cors:
+            origin: ${self:custom.origin}
+            headers:
+              - '*'
 resources:
   Resources:
     # 1) FOR USER TABLE. When user signs up.
@@ -191,6 +246,7 @@ resources:
         # MUST Define it. Without it "compareFace" function's "arn: !GetAtt ImagesTable.StreamArn" won't work!!!!!!!
         StreamSpecification:
           StreamViewType: NEW_AND_OLD_IMAGES
+
     # 3) FOR ATTENDANCE TABLE. When user image is compared.
     AttendanceTable:
       Type: AWS::DynamoDB::Table
@@ -198,15 +254,16 @@ resources:
         AttributeDefinitions:
           - AttributeName: userId
             AttributeType: S
-          - AttributeName: createdAt
-            AttributeType: N
+          - AttributeName: createdDate
+            AttributeType: S
         KeySchema:
           - AttributeName: userId
             KeyType: HASH
-          - AttributeName: createdAt
+          - AttributeName: createdDate
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:custom.table.attendance}
+
     # FOR ATTENDANCE IMAGE BUCKET
     GanzoS3Bucket:
       Type: AWS::S3::Bucket

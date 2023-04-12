@@ -1,12 +1,13 @@
 const { DynamoDB } = require('@aws-sdk/client-dynamodb');
-const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
+const { marshall } = require('@aws-sdk/util-dynamodb');
 const db = new DynamoDB();
 
 const TABLE_NAME = process.env.IMAGES_TABLE; // "Images"
 
-module.exports.checkOriginalImage = async (event) => {
-  const userId = event.pathParameters.userId; // e.g. "050a43c9afbe70c61ed0.jpg"
-  const imageName = `original/${userId}`; // e.g. "original/050a43c9afbe70c61ed0.jpg"
+module.exports.checkImage = async (event) => {
+  const query = event.pathParameters.query; // e.g. "original-050a43c9afbe70c61ed0.jpg"
+
+  const imageName = query.replace('-', '/'); // e.g. "original/050a43c9afbe70c61ed0.jpg"
 
   const params = {
     imageName,
@@ -22,11 +23,10 @@ module.exports.checkOriginalImage = async (event) => {
       return {
         statusCode: 200,
         headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': '*',
+          'Access-Control-Allow-Origin': 'http://localhost:3000',
         },
         body: JSON.stringify({
-          message: 'Data not found',
+          message: 'Image not found',
           found: false,
         }),
       };
@@ -41,11 +41,10 @@ module.exports.checkOriginalImage = async (event) => {
     return {
       statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
       },
       body: JSON.stringify({
-        message: 'Data found',
+        message: 'Image found',
         found: true,
       }),
     };
@@ -54,8 +53,7 @@ module.exports.checkOriginalImage = async (event) => {
     return {
       statusCode: 400, //Bad request
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
       },
       body: JSON.stringify({
         message: 'Bad request.',

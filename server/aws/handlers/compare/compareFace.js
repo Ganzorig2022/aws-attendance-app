@@ -15,6 +15,7 @@ AWS.config.update({ region: REGION });
 exports.compareFace = async (event) => {
   let imageName = null;
 
+  console.log('EVENT IS WORKING>>>>>', event.Records[0].dynamodb);
   const newImage = event.Records[0].dynamodb.NewImage;
 
   if (newImage) {
@@ -67,8 +68,7 @@ exports.compareFace = async (event) => {
       return {
         statusCode: 200,
         headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': '*',
+          'Access-Control-Allow-Origin': 'http://localhost:3000',
         },
         body: JSON.stringify({
           message: 'Result between two faces are NOT IDENTICAL.',
@@ -84,15 +84,14 @@ exports.compareFace = async (event) => {
       const invokeParams = {
         FunctionName: `${arnPrefix}:aws-attendance-app-dev-createAttendance`,
         InvocationType: 'Event',
-        Payload: JSON.stringify({ similarity: 'identical', userId }),
+        Payload: JSON.stringify({ userId }),
       };
       await lambda.invoke(invokeParams).promise();
 
       return {
         statusCode: 200,
         headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': '*',
+          'Access-Control-Allow-Origin': 'http://localhost:3000',
         },
         body: JSON.stringify({
           message: 'Result between two faces are IDENTICAL.',
@@ -106,8 +105,7 @@ exports.compareFace = async (event) => {
     return {
       statusCode: 400,
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
       },
       body: JSON.stringify({
         message: 'REKOGNITION FAILED',
