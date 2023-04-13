@@ -5,21 +5,21 @@ const { persistAtom } = recoilPersist();
 
 // 1) Declaring type
 export interface userTableType {
-  arrivedAt: { S: string };
-  createdAt: { N: number };
-  lateMinute: { N: string };
-  userId: { S: string };
-  description: { S: string };
+  arrivedAt: string;
+  createdDate: string;
+  lateMinute: string;
+  userId: string;
+  description: string;
 }
 
 // 2) Defining Default State
 const defaultState: userTableType[] = [
   {
-    arrivedAt: { S: '' },
-    createdAt: { N: 0 },
-    lateMinute: { N: '' },
-    userId: { S: '' },
-    description: { S: '' },
+    arrivedAt: '',
+    createdDate: '',
+    lateMinute: '',
+    userId: '',
+    description: '',
   },
 ];
 

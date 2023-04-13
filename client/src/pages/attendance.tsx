@@ -39,19 +39,17 @@ const Attendance = () => {
               <tr>
                 <th>ID</th>
                 <th>Created at</th>
-                <th>Arrived time</th>
-                <th>description</th>
                 <th>Late Minute</th>
+                <th>description</th>
               </tr>
             </thead>
             <tbody className='hover:bg-red-100'>
-              {userTable.map((user: userTableType, i: number) => (
+              {userTable?.map((user: userTableType, i: number) => (
                 <tr key={i}>
-                  <th>{user.userId.S}</th>
-                  <th>{user.createdAt.N}</th>
-                  <th>{user.arrivedAt.S}</th>
-                  <th>{user.lateMinute.N} min</th>
-                  <th>{user.description.S}</th>
+                  <th>{user.userId}</th>
+                  <th>{user.createdDate}</th>
+                  <th>{user.lateMinute} min</th>
+                  <th>{user.description}</th>
                 </tr>
               ))}
             </tbody>

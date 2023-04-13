@@ -1,7 +1,11 @@
 import React from 'react';
 import Logout from './auth/Logout';
+import { useRecoilValue } from 'recoil';
+import { userTableState } from '@/recoil/userTableAtom';
 
 const Header = () => {
+  const userTable = useRecoilValue(userTableState);
+
   return (
     <div className='sticky top-0 z-10'>
       <div className='navbar bg-base-500'>
@@ -36,23 +40,18 @@ const Header = () => {
             </ul>
           </div>
           <a href='/' className='btn btn-ghost normal-case text-xl '>
-            Home Page
+            Home
           </a>
+          {userTable.length > 0 && (
+            <a
+              href='/attendance'
+              className='btn btn-ghost normal-case text-xl '
+            >
+              Attendance
+            </a>
+          )}
         </div>
-        <div className='navbar-center hidden lg:flex'>
-          {/* <ul className='menu menu-horizontal px-1'>
-            <li>
-              <button className='btn' onClick={toggle}>
-                Capture Image
-              </button>
-            </li>
-            <li>
-              <button className='btn' onClick={toggle}>
-                Choose Image
-              </button>
-            </li>
-          </ul> */}
-        </div>
+        <div className='navbar-center hidden lg:flex'></div>
         <div className='navbar-end'>
           <Logout />
         </div>

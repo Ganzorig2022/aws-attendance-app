@@ -13,7 +13,7 @@ const GetAllAttendance = () => {
 
     const response = await fetchData('get', endpoint);
 
-    console.log('DATA', response?.data.data);
+    console.log('DATA', response);
 
     if (!response?.data.data)
       return toast.error('There is no user attendance data');

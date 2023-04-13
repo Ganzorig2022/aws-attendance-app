@@ -15,7 +15,6 @@ AWS.config.update({ region: REGION });
 exports.compareFace = async (event) => {
   let imageName = null;
 
-  console.log('EVENT IS WORKING>>>>>', event.Records[0].dynamodb);
   const newImage = event.Records[0].dynamodb.NewImage;
 
   if (newImage) {

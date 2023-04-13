@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/router';
@@ -59,14 +60,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setLoggedIn(true);
       console.log('<<<<<<USER STILL SIGNED IN>>>>>>');
     })();
-
-    // if (token) {
-    // }
-    // if (!token) {
-    //   setLoggedIn(false);
-    //   router.push('/auth');
-    // }
-  }, [router]);
+  }, []);
 
   // 1) Create user
   const signUp = async (email: string, password: string) => {

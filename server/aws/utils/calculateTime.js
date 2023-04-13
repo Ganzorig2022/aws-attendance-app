@@ -3,7 +3,7 @@ module.exports.calculateTime = async () => {
 
   const lessonStarts = new Date(); //Fri Mar 31 2023 11:17:09 GMT+0800 (Ulaanbaatar Standard Time)
   // us-east-1 tsagiin bvsees bolood MGL-iin 9n tsag oorchlogdono.
-  lessonStarts.setHours(5, 0, 0); // Fri Mar 31 2023 09:00:00 GMT+0800 (Ulaanbaatar Standard Time)
+  lessonStarts.setHours(13, 0, 0); // Fri Mar 31 2023 09:00:00 GMT+0800 (Ulaanbaatar Standard Time)
 
   const currentTime = Date.now(); // 1680241641521
   const startTime = lessonStarts.getTime(); // 1680241641521

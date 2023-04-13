@@ -141,7 +141,7 @@ functions:
             headers:
               - '*'
   getAllAttendance:
-    handler: handlers/getAllAttendance.getAllAttendance
+    handler: handlers/attendance/getAllAttendance.getAllAttendance
     events:
       - http:
           path: attendance/list

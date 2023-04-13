@@ -1,9 +1,11 @@
 'use strict';
 
 const { DynamoDB } = require('@aws-sdk/client-dynamodb');
+const { unmarshall } = require('@aws-sdk/util-dynamodb');
+
 const db = new DynamoDB();
 
-const TABLE_NAME = process.env.ATTENDANCE_TABLE;
+const TABLE_NAME = process.env.ATTENDANCE_TABLE; // "Attendance"
 
 module.exports.getAllAttendance = async (event) => {
   try {
@@ -17,7 +19,7 @@ module.exports.getAllAttendance = async (event) => {
         'Access-Control-Allow-Origin': 'http://localhost:3000',
       },
       body: JSON.stringify({
-        data: Items,
+        data: Items.map((el) => unmarshall(el)),
         message: 'User data arrived successfully.',
       }),
     };
